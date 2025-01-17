@@ -6,7 +6,7 @@ import RNPickerSelect from 'react-native-picker-select'
 import axios from 'axios'
 import { FlatList, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
 import Place from './components/Place'
-import { Link } from 'expo-router'
+import { Link, useNavigation, useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 interface Restaurant {
@@ -20,6 +20,7 @@ interface Restaurant {
 }
 
 export default function Host() {
+  const router = useRouter()
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const states = [
@@ -124,12 +125,20 @@ export default function Host() {
       </View>      
   )}
 
-  const generateRoomCode = () => {
+  const generateRoomCode = async () => {
     const room = {
       id: Math.floor(100000 + Math.random() * 900000).toString(),
       restaurants: restaurants
     }
     AsyncStorage.setItem('Room', JSON.stringify(room))
+
+    try {
+      /* const response = await axios.post('http://localhost:8080/rooms/', room)
+      console.log('Response', response) */
+      router.push('/room')
+    } catch (error) {
+      console.log('Error', error)
+    }
   }
   
   return (
@@ -173,9 +182,9 @@ export default function Host() {
           style={globalStyles.button}
           onPress={generateRoomCode}>
           <Text style={globalStyles.buttonText}>
-            <Link href='/room'>
+            {/* <Link href='/room'> */}
               Create Room
-            </Link>
+            {/* </Link> */}
           </Text>
         </Pressable>
         </>

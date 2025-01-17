@@ -9,7 +9,9 @@ const getRoomById = async (req, res) => {
 }
 
 const addRoom = async (req, res) => {
-    res.json('add room') //generate shareable id
+    //generate shareable id
+    console.log('Req.body received', req.body)
+    res.status(200).json({message: 'Room Added'})
 }
 
 const updateRoom = async (req, res) => {
