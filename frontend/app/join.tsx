@@ -1,14 +1,18 @@
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native'
-import React, {useState} from 'react'
+import { Modal, Pressable, StyleSheet, Text, View, TextInput, TouchableOpacity, Button } from 'react-native'
+import React, {useEffect, useState} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-
+import { MaterialIcons } from '@expo/vector-icons'
+import { useNavigation } from 'expo-router'
+import InformationPopup from './components/InformationPopup'
 export default function Join() {
   const [roomCode, setRoomCode] = useState('')
   const router = useRouter()
+  const navigation = useNavigation()
+  const [modalVisible, setModalVisible] = useState(false)
 
   const findRoom = async() => {
     console.log('Find room triggered')
@@ -28,8 +32,25 @@ export default function Join() {
     }
     console.log('After try catch')
   }
+
+  const joinInfo = () => {
+    alert('Join info')
+    console.log('Join info')
+  }
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <MaterialIcons name='info-outline' size={40} style={{color: 'darkorange'}} />
+          </TouchableOpacity>
+        )
+    })
+  }, [navigation])
+
   return (
     <SafeAreaView>
+      <InformationPopup title="Join Info" body='Enter the room code given when hosting a page, should be a six character number (i.e. 123456)' modalVisible={modalVisible} setModalVisible={setModalVisible} />
       <TextInput
         style={globalStyles.textInput}
         placeholder='Room Code'

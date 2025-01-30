@@ -7,6 +7,3 @@ FoodMatch
 Groupees
 GroupEatz
 Eatzy
-
-Themes:
-blue + other

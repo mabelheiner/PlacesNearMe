@@ -1,4 +1,4 @@
-make status bar visible
+make status bar visible *done
 
 adding tutorial pages
 
