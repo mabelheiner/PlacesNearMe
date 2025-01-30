@@ -120,29 +120,34 @@ export default function Host() {
   const renderRestaurant = ({ item }: { item: Restaurant }) => {
     console.log('Item', item)
     return (
-      <View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center'}]}>
+      <View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
         <Place restaurant={item} />
       </View>      
   )}
 
   const generateRoomCode = async () => {
     const room = {
-      id: Math.floor(100000 + Math.random() * 900000).toString(),
-      restaurants: restaurants
+      publicId: Math.floor(100000 + Math.random() * 900000).toString(),
+      restaurantList: restaurants
     }
     AsyncStorage.setItem('Room', JSON.stringify(room))
+    console.log('Room', room)
+    router.push('/room')
 
-    try {
-      /* const response = await axios.post('http://localhost:8080/rooms/', room)
-      console.log('Response', response) */
-      router.push('/room')
+    /* try {
+      const response = await axios.post('http://localhost:3000/rooms/', room)
+      console.log('Response', response) 
+      if (response.status === 200) {
+        console.log('New Room', response.data.room)
+        router.push('/room')
+      }
     } catch (error) {
       console.log('Error', error)
-    }
+    } */
   }
   
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <GestureHandlerRootView style={{ flex: 1}}>
       <TextInput
         style={globalStyles.textInput}

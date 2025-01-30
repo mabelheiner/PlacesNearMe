@@ -36,12 +36,13 @@ export default function Room() {
         const responseRestaurantData = await AsyncStorage.getItem('restaurants')
 
         const responseRoom = await AsyncStorage.getItem('Room')
+        console.log('Response from room', responseRoom)
 
         if (responseRoom) {
           setRoomInfo(JSON.parse(responseRoom))
 
           navigation.setOptions({
-            title: `Room: ${JSON.parse(responseRoom).id}`
+            title: `Room: ${JSON.parse(responseRoom).publicId}`
           })
         }
   
@@ -103,15 +104,13 @@ export default function Room() {
     restaurantIndex.value = Math.min(restaurantIndex.value + 1, restaurants.length - 1)
   }
   return (
-    <GestureHandlerRootView>
-      {/* <Text>Room id: {roomInfo.id}</Text> */}
-      
+    <GestureHandlerRootView>  
 
       {restaurants.length < 0 ? (<Text>Loading...</Text>) : 
       (
         
           <GestureDetector gesture={swipeGesture}>
-            <Animated.View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            <Animated.View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '100%', backgroundColor: 'blue'}}>
               {/* <Pressable
                 style={globalStyles.button}
                 onPress={decrementIndex}
@@ -123,8 +122,12 @@ export default function Room() {
               currentIndex < restaurants.length ?
               (
               <>
-                  <Text style={{position: 'absolute', top: 0, right: 0}}>{currentIndex + 1}/{restaurants.length}</Text>
-                  <Place restaurant={restaurants[currentIndex]} />
+                  <View style={styles.restaurantCard}>
+                    <Text style={{position: 'absolute', top: 0, right: 0}}>{currentIndex + 1}/{restaurants.length}</Text>
+                    <View style={styles.place}>
+                      <Place restaurant={restaurants[currentIndex]} />
+                    </View>                    
+                  </View>                  
               </>
               ) : (<Text>No display available</Text>)
               }
@@ -142,4 +145,17 @@ export default function Room() {
   )
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  restaurantCard: {
+    padding: 16,
+    height: '100%',
+    backgroundColor: 'white',
+    flex: 1,
+    alignItems: 'center'
+  },
+  place: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
+})

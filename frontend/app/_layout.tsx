@@ -22,7 +22,7 @@ export default function _layout() {
     }, [error])
 
     if (!fontsLoaded) {
-        return <View>
+        return <View style={{backgroundColor: 'white'}}>
             <Text>Loading...</Text>
         </View>
     }

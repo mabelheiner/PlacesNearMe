@@ -75,15 +75,15 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
         source={imageSource}
         style={styles.image}
         onError={handleImageError}
-      /> 
-      {restaurant.address !== "No street address available" && (
+      />   
+      {/* {restaurant.address !== "No street address available" && (
         <Text
           style={{ color: "blue" }}
           onPress={() => Linking.openURL(restaurant.googleMapsLink)}
         >
           View on Google Maps
         </Text>
-      )}
+      )} */}
     </View>
   );
 };
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
+    textAlign: 'center'
   },
   image: {
     width: 250,
