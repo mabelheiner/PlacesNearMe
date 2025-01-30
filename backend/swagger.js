@@ -5,7 +5,7 @@ const doc = {
         title: 'Places Near Me API',
         description: 'Api for storing rooms and data for the Places Near Me mobile and web application'
     },
-    host: 'localhost:3000',
+    host: 'placesnearme.onrender.com',
     schemes: ['http', 'https']
 };
 

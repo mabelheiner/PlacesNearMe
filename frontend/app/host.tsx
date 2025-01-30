@@ -132,10 +132,9 @@ export default function Host() {
     }
     AsyncStorage.setItem('Room', JSON.stringify(room))
     console.log('Room', room)
-    router.push('/room')
 
-    /* try {
-      const response = await axios.post('http://localhost:3000/rooms/', room)
+    try {
+      const response = await axios.post('https://placesnearme.onrender.com/rooms/', room)
       console.log('Response', response) 
       if (response.status === 200) {
         console.log('New Room', response.data.room)
@@ -143,7 +142,7 @@ export default function Host() {
       }
     } catch (error) {
       console.log('Error', error)
-    } */
+    } 
   }
   
   return (
