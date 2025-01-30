@@ -28,24 +28,24 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
     } else {
       fetchLogo(restaurant.name); // Fetch logo if it's not available
     }
-    console.log('Restaurant received', restaurant);
+    //console.log('Restaurant received', restaurant);
   }, [restaurant]);
 
   if (!restaurant) {
     return <Text>No restuarant data.</Text>
   } else {
-    console.log('Restaurant', restaurant)
+    //console.log('Restaurant', restaurant)
   }
 
   const fetchLogo = async (website: string) => {
     website = website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
-    console.log('Website after cleaning:', website);
+    //console.log('Website after cleaning:', website);
   
     try {
       const response = await fetch(`https://api.kickfire.com/logo?website=${website}.com`);
-      console.log('Fetch url', `https://api.kickfire.com/logo?website=${website}.com`);
+      //console.log('Fetch url', `https://api.kickfire.com/logo?website=${website}.com`);
 
-      console.log('response', response)
+      //console.log('response', response)
       
       if (response.status === 200) {
         setImageSource({uri: response.url})
@@ -62,7 +62,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
   
 
   const handleImageError = () => {
-    console.log(`Failed to load image: ${restaurant.logoUrl}, falling back to placeholder`);
+    //console.log(`Failed to load image: ${restaurant.logoUrl}, falling back to placeholder`);
     setImageSource(logoPlaceholder); // Fallback to placeholder on error
   };
 

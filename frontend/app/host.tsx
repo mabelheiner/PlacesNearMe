@@ -118,7 +118,7 @@ export default function Host() {
       </View> */
 
   const renderRestaurant = ({ item }: { item: Restaurant }) => {
-    console.log('Item', item)
+    //console.log('Item', item)
     return (
       <View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
         <Place restaurant={item} />
@@ -130,15 +130,16 @@ export default function Host() {
       publicId: Math.floor(100000 + Math.random() * 900000).toString(),
       restaurantList: restaurants
     }
-    AsyncStorage.setItem('Room', JSON.stringify(room))
-    console.log('Room', room)
+    //console.log('Room', room)
 
     try {
       const response = await axios.post('https://placesnearme.onrender.com/rooms/', room)
-      console.log('Response', response) 
-      if (response.status === 200) {
-        console.log('New Room', response.data.room)
-        router.push('/room')
+      //console.log('Response', response)
+      //console.log('Response status', response.status === 201) 
+      if (response.status === 201) {
+        //console.log('New Room', response.data.room)
+        AsyncStorage.setItem('Room', JSON.stringify(response.data.room))
+        router.push('/room') 
       }
     } catch (error) {
       console.log('Error', error)

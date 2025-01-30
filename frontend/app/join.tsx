@@ -13,11 +13,12 @@ export default function Join() {
   const findRoom = async() => {
     console.log('Find room triggered')
     try {
-      const response = await axios.get(`http://10.41.1.141:3000/rooms/${roomCode}`)
+      const response = await axios.get(`https://placesnearme.onrender.com/rooms/${roomCode}`)
       console.log('Response', response)
       if (response.status === 200) {
-        AsyncStorage.setItem('Room', JSON.stringify(response.data.room))
-        //router.push('/room')
+        const rooms = JSON.stringify(response.data)
+        AsyncStorage.setItem('Room', rooms)
+        router.push('/room')
       } else {
         alert('Cannot find room with that room code')
       }

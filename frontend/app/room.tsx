@@ -32,31 +32,32 @@ export default function Room() {
     const fetchRoomId = async () => {
       setLoading(true)
       try {
-        const responseRoomId = await AsyncStorage.getItem('Room Code')
-        const responseRestaurantData = await AsyncStorage.getItem('restaurants')
 
         const responseRoom = await AsyncStorage.getItem('Room')
         console.log('Response from room', responseRoom)
 
         if (responseRoom) {
-          setRoomInfo(JSON.parse(responseRoom))
+          const jsonParse = JSON.parse(responseRoom)
 
-          navigation.setOptions({
-            title: `Room: ${JSON.parse(responseRoom).publicId}`
-          })
-        }
-  
-        console.log('room id', responseRoomId)
-        console.log('restaurants', responseRestaurantData)
-  
-        if (responseRoomId) {
-          setRoomId(responseRoomId)
-        }
-  
-        if (responseRestaurantData) {
-          setRestaurants(JSON.parse(responseRestaurantData))
-          const res = JSON.parse(responseRestaurantData)
-          console.log('First restaurant', res[currentIndex])
+          if (jsonParse[0] !== undefined) {
+            const roomData = jsonParse[0]
+            console.log('json room', roomData)
+            setRoomInfo(roomData)
+            setRestaurants(roomData.restaurantList)
+
+            navigation.setOptions({
+              title: `Room: ${roomData.publicId}`
+            })
+          } else {
+            const roomData = jsonParse
+            console.log('json room', roomData)
+            setRoomInfo(roomData)
+            setRestaurants(roomData.restaurantList)
+
+            navigation.setOptions({
+              title: `Room: ${roomData.publicId}`
+            })
+          }          
         }
 
       } catch (error) {
@@ -76,7 +77,7 @@ export default function Room() {
   }
 
   const swipeGesture = Gesture.Pan().onEnd((event) => {
-    console.log('Gesture detected')
+    //console.log('Gesture detected')
     const { translationX } = event
 
     if (
@@ -93,7 +94,7 @@ export default function Room() {
       runOnJS(setCurrentIndex)(restaurantIndex.value)
     }
 
-    console.log('Restaurant index', restaurantIndex.value)
+    //console.log('Restaurant index', restaurantIndex.value)
   })
 
   const decrementIndex = () => {
