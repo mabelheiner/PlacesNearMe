@@ -1,5 +1,5 @@
 names:
-uDecide
+uDecide !important
 EatR
 NomSearch
 Indecisive

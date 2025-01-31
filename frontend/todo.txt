@@ -11,3 +11,6 @@ TODO:
 - save and post results
 - style
 - icon/splash page
+- search radius (miles)
+- unique places
+- deal with long lists (i.e. Portland - max results)

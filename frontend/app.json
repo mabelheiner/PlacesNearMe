@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PlacesNearMe",
-    "slug": "PlacesNearMe",
+    "name": "UD'cide",
+    "slug": "UDcide",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./app/assets/images/icon.png",
@@ -9,13 +9,18 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mabethebabe5.UDcide",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./app/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mabethebabe5.UDcide"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +42,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b129557c-551e-4e14-bb17-e30a4fa49f26"
+      }
     }
   }
 }
