@@ -1,0 +1,13 @@
+make status bar visible *done
+
+adding tutorial pages *done
+
+add mongodb backend *done
+
+TODO:
+- create share link
+- add filter for more than food (i.e. parks/recreation)
+- swipe to delete
+- save and post results
+- style
+- icon/splash page
