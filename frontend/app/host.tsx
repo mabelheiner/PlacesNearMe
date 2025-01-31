@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, TextInput, Linking, Button, ActivityIndicator, Keyboard } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, TextInput, Linking, Button, ActivityIndicator, Keyboard, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles'
 import RNPickerSelect from 'react-native-picker-select'
@@ -8,6 +8,8 @@ import { FlatList, GestureHandlerRootView, Pressable } from 'react-native-gestur
 import Place from './components/Place'
 import { Link, useNavigation, useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { MaterialIcons } from '@expo/vector-icons'
+import InformationPopup from './components/InformationPopup'
 
 interface Restaurant {
   id: number,
@@ -21,6 +23,8 @@ interface Restaurant {
 
 export default function Host() {
   const router = useRouter()
+  const navigation = useNavigation()
+  const [modalVisible, setModalVisible] = useState(false)
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const states = [
@@ -145,9 +149,20 @@ export default function Host() {
       console.log('Error', error)
     } 
   }
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <MaterialIcons name='info-outline' size={40} style={{color: 'darkorange'}} />
+        </TouchableOpacity>
+      )
+    })
+  }, [navigation])
   
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+      <InformationPopup title='Host Info' body='Enter the city and state in which you would like to search for fun places in. Swipe down to look through these activities and when you are happy with what is there, click "Create Room" to create a room with a unique six digit code which your friends can enter in their "Join" page to look through the same activities' modalVisible={modalVisible} setModalVisible={setModalVisible} />
       <GestureHandlerRootView style={{ flex: 1}}>
       <TextInput
         style={globalStyles.textInput}

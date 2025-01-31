@@ -6,7 +6,7 @@ import globalStyles from '../globalStyles/globalStyles'
 
 interface InformationPopupProps {
     title: string;
-    body: string;
+    body: React.ReactNode;
     modalVisible: boolean;
     setModalVisible: (visible: boolean) => void;
 }

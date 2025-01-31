@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Place from './components/Place'
@@ -6,6 +6,8 @@ import { useNavigation } from 'expo-router'
 import { Gesture, GestureDetector, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
 import Animated, { FlipInEasyX, runOnJS, useSharedValue } from 'react-native-reanimated'
 import globalStyles from './globalStyles/globalStyles'
+import { MaterialIcons } from '@expo/vector-icons'
+import InformationPopup from './components/InformationPopup'
 
 interface Restaurant {
   id: number,
@@ -27,6 +29,7 @@ export default function Room() {
   const restaurantIndex = useSharedValue(0) 
 
   const navigation = useNavigation()
+  const [modalVisible, setModalVisible] = useState(false)
 
   useEffect(() => {
     const fetchRoomId = async () => {
@@ -70,6 +73,16 @@ export default function Room() {
     fetchRoomId()
   }, [])
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <MaterialIcons name='info-outline' size={40} style={{color: 'darkorange'}} />
+        </TouchableOpacity>
+      )
+    })
+  }, [navigation])
+
   if (loading) {
     return (
       <Text>Loading...</Text>
@@ -106,6 +119,7 @@ export default function Room() {
   }
   return (
     <GestureHandlerRootView>  
+      <InformationPopup title='Room Info' body='Swipe right or left through places within your location to see what you want to do. Swipe right to save the activity and swipe left to pass on the activity' modalVisible={modalVisible} setModalVisible={setModalVisible} />
 
       {restaurants.length < 0 ? (<Text>Loading...</Text>) : 
       (

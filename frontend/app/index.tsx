@@ -16,7 +16,19 @@ export default function Index() {
       <TouchableOpacity style={{position: 'absolute', top: 30, right: 20}} onPress={() => setModalVisible(true)}>
         <MaterialIcons name='info-outline' size={40} style={{color: 'darkorange'}}/>
       </TouchableOpacity>
-      <InformationPopup title='How to Host and Join a Room' body={`Host: Click this button to search a for places within a particular city and create a room for your friends to vote on what they want to do. \n Join: Click this button to join a room that is already by hosted. Be sure to have the room code ready.`} modalVisible={modalVisible} setModalVisible={setModalVisible} />
+      <InformationPopup 
+        title='How to Host and Join a Room' 
+        body={
+          <Text>
+            <Text style={{fontWeight: 'bold'}}>Host: </Text> 
+            Click this button to search a for places within a particular city and create a room for your friends to vote on what they want to do.{'\n'}
+            <Text style={{fontWeight: 'bold'}}>Join: </Text>
+            Click this button to join a room that is already by hosted. Be sure to have the room code ready.`
+          </Text>
+        } 
+        modalVisible={modalVisible} 
+        setModalVisible={setModalVisible} 
+      />
       <Pressable style={globalStyles.button}>
         <Text style={globalStyles.buttonText}>
           <Link href='/host'>Host</Link>
