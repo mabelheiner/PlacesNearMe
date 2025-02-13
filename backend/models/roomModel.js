@@ -26,8 +26,37 @@ const roomSchema = mongoose.Schema({
         lng: {
             type: Number,
             required: false,
-        }}]
-    }
+        }}],
+        required: true,
+    },
+    label: {
+        type: String,
+        required: true
+    },
+    favorites: {
+        type: [{
+        id: {
+            type: Number,
+            required: true,
+        },
+        name: {
+            type: String,
+            required: true,
+        },
+        address: {
+            type: String,
+            required: true,
+        },
+        lat: {
+            type: Number,
+            required: false,
+        },
+        lng: {
+            type: Number,
+            required: false,
+        }}],
+        required: false,
+    },
 }, {timestamps: true})
 
 const Room = mongoose.model('room', roomSchema)

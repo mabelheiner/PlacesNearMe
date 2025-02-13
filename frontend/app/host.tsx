@@ -4,12 +4,29 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles'
 import RNPickerSelect from 'react-native-picker-select'
 import axios from 'axios'
-import { FlatList, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
+import { FlatList, Gesture, GestureDetector, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
 import Place from './components/Place'
 import { Link, useNavigation, useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
+import Animated, {runOnJS} from 'react-native-reanimated'
+
+const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
+const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
+const FastFoodPlaceholder = require('../app/assets/images/placeholders/Fast Food.png')
+const GasStationsPlacholder = require('../app/assets/images/placeholders/Gas Stations.png')
+const GolfCoursesPlaceholder = require('../app/assets/images/placeholders/Golf Courses.png')
+const GroceryStoresPlaceholder = require('../app/assets/images/placeholders/Grocery Stores.png')
+const IceCreamPlaceholder = require('../app/assets/images/placeholders/Ice Cream.png')
+const LibrariesPlaceholder = require('../app/assets/images/placeholders/Libraries.png')
+const MovieTheaterPlaceholder = require('../app/assets/images/placeholders/Movie Theater.png')
+const ParkPlaceholder = require('../app/assets/images/placeholders/Park.png')
+const PlanetariumsPlaceholder = require('../app/assets/images/placeholders/Planetariums.png')
+const RestaurantPlaceholder = require('../app/assets/images/placeholders/Restaurant.png')
+const SalonPlaceHolder = require('../app/assets/images/placeholders/Salons.png')
+const ZooPlaceholder = require('../app/assets/images/placeholders/Zoos.png')
+const logoPlaceholder = require('../app/assets/images/placeholders/logoPlaceholder.jpg')
 
 interface Restaurant {
   id: number,
@@ -40,6 +57,64 @@ export default function Host() {
     "West Virginia", "Wisconsin", "Wyoming"
   ];
 
+  const [filter, setFilter] = useState('')
+  const [label, setLabel] = useState('')
+  const filters = [
+    {
+      label: 'Restaurants',
+      value: '"amenity"="restaurant"',
+    },
+    {
+      label: 'Fast Food',
+      value: '"amenity"="fast_food"', 
+    },
+    {
+      label: 'Movie Theaters',
+      value: '"amenity"="cinema"',
+    },
+    {
+      label: 'Golf Courses',
+      value: '"amenity"="golf_course"', 
+    },
+    {
+      label: 'Cafes',
+      value: '"amenity"="cafe"',
+    },
+    {
+      label: 'Gas Stations',
+      value: '"amenity"="fuel"',
+    },
+    {
+      label: 'Libraries',
+      value: '"amenity"="library"',
+    },
+    {
+      label: 'Ice Cream',
+      value: '"amenity"="ice_cream"', 
+    },
+    {
+      label: 'Dojos',
+      value: '"amenity"="dojo"',
+    },
+    {
+      label: 'Grocery Stores',
+      value: '"shop"="supermarket"', 
+    },
+    {
+      label: 'Planetariums',
+      value: '"amenity"="planetarium"', 
+    },
+    {
+      label: 'Salons',
+      value: '"shop"="beauty"', 
+    },
+    {
+      label: 'Zoos',
+      value: '"tourism"="zoo"',
+    }   
+  ]
+
+  const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder);
   const [loading, setLoading] = useState(false)
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
 
@@ -52,11 +127,19 @@ export default function Host() {
     setLoading(true)
     Keyboard.dismiss()
 
+    if (filter === null) {
+      alert("Please select a type of activity.")
+      setLoading(false)
+      return
+    }
+
     const query = `
       [out:json];
       area[name="${state}"][admin_level=4]->.stateArea;
       area[name="${city}"][admin_level=8]->.cityArea;
-      nwr["amenity"="fast_food"](area.cityArea)(area.stateArea);
+      (
+        nwr[${filter}](area.cityArea)(area.stateArea);
+      );
       out geom;
     `;
     const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
@@ -65,7 +148,24 @@ export default function Host() {
 
     try {
       const response = await axios.get(url);
-      const data = response.data.elements;
+      let data = response.data.elements;
+      //console.log('Response from api', response)
+
+      let uniquePlaces = []
+      const seenPlaces = new Set()
+
+      for (const item of data) {
+        if (item.tags && item.tags.name && !seenPlaces.has(item.tags.name)) {
+          seenPlaces.add(item.tags.name)
+          uniquePlaces.push(item)
+        }
+      }
+
+      if (uniquePlaces.length > 50) {
+        data = uniquePlaces.slice(0, 50)
+      } else {
+        data = uniquePlaces
+      }
 
       const formattedData: Restaurant[] = data.map((item: any) => {
         const addressParts: string[] = [];
@@ -113,6 +213,7 @@ export default function Host() {
     }
   };
 
+  
   /* <View style={styles.restaurantCard}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.address}>{item.address}</Text>
@@ -122,17 +223,37 @@ export default function Host() {
       </View> */
 
   const renderRestaurant = ({ item }: { item: Restaurant }) => {
-    //console.log('Item', item)
+    //console.log('Item', item)c
+    const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20]) // ignore small horizontal movements
+    .failOffsetY([-5, 5]) // allows vertical scrolling
+    .onEnd((event) => {
+      const {translationX} = event
+
+      if (translationX < -50) {
+        runOnJS(setRestaurants)(restaurants.filter((remove) => remove.name != item.name))
+      }
+    })
+
     return (
-      <View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
-        <Place restaurant={item} />
-      </View>      
+        <GestureDetector gesture={swipeGesture}>
+        <Animated.View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
+          <Place restaurant={item} placeholderImage={placeholderImage} />
+        </Animated.View>    
+        </GestureDetector> 
   )}
 
   const generateRoomCode = async () => {
+    setLoading(true)
+    if (restaurants.length === 0) {
+      alert('Please search for places to choose from.')
+      setLoading(false)
+      return
+    } 
     const room = {
       publicId: Math.floor(100000 + Math.random() * 900000).toString(),
-      restaurantList: restaurants
+      restaurantList: restaurants,
+      filter: label
     }
     //console.log('Room', room)
 
@@ -181,6 +302,51 @@ export default function Host() {
             value: state
           }))}
       />
+      <RNPickerSelect
+        onValueChange={(value, index) => {
+          setFilter(value)
+          console.log('Filter', filters[index - 1].label)
+          let filterLabel = filters[index -1].label
+          setLabel(filterLabel)
+          if (filterLabel === "Restaurants") {
+            setPlaceholderImage(RestaurantPlaceholder)
+          } else if (filterLabel === 'Fast Food') {
+            setPlaceholderImage(FastFoodPlaceholder)
+          } else if (filterLabel === 'Movie Theaters') {
+            setPlaceholderImage(MovieTheaterPlaceholder)
+          } else if (filterLabel === 'Golf Courses') {
+            setPlaceholderImage(GolfCoursesPlaceholder)
+          } else if (filterLabel === 'Cafes') {
+            setPlaceholderImage(CafesPlaceholder)
+          } else if (filterLabel === 'Gas Stations') {
+            setPlaceholderImage(GasStationsPlacholder)
+          } else if (filterLabel === 'Libraries') {
+            setPlaceholderImage(LibrariesPlaceholder)
+          } else if (filterLabel === 'Ice Cream') {
+            setPlaceholderImage(IceCreamPlaceholder)
+          } else if (filterLabel === 'Dojos') {
+            setPlaceholderImage(DojosPlaceholder)
+          } else if (filterLabel === 'Grocery Stores') {
+            setPlaceholderImage(GroceryStoresPlaceholder)
+          } else if (filterLabel === 'Planetariums') {
+            setPlaceholderImage(PlanetariumsPlaceholder)
+          } else if (filterLabel === 'Salons') {
+            setPlaceholderImage(SalonPlaceHolder)
+          } else if (filterLabel === 'Zoos') {
+            setPlaceholderImage(ZooPlaceholder)
+          } else {
+            setPlaceholderImage(logoPlaceholder)
+          }
+        }}
+        placeholder={{
+          label: 'Type of Activity',
+          value: null
+        }}
+        items={filters.map((filter) => ({
+          label: filter.label,
+          value: filter.value
+        }))}
+        />
       <Pressable 
         style={globalStyles.button}
         onPress={fetchRestaurants}
@@ -192,12 +358,14 @@ export default function Host() {
       ): (
         <>
         <Text style={globalStyles.title}>Preview of Places</Text>
+        <GestureHandlerRootView>
         <FlatList
           data={restaurants}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderRestaurant}
-          ListEmptyComponent={<Text>No restaurants to display</Text>}
+          ListEmptyComponent={<Text>No places to display</Text>}
           />
+        </GestureHandlerRootView>
         <Pressable 
           style={globalStyles.button}
           onPress={generateRoomCode}>

@@ -6,7 +6,7 @@ const doc = {
         description: 'Api for storing rooms and data for the Places Near Me mobile and web application'
     },
     host: 'placesnearme.onrender.com',
-    schemes: ['http', 'https']
+    schemes: ['https']
 };
 
 const outputFile = 'swagger.json'

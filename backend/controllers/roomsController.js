@@ -17,10 +17,11 @@ const getRoomById = async (req, res) => {
 }
 
 const addRoom = async (req, res) => {
-    //console.log('Req.body received', req.body)
+    console.log('Req.body received', req.body)
     const room = {
         publicId: req.body.publicId,
-        restaurantList: req.body.restaurantList
+        restaurantList: req.body.restaurantList,
+        filter: req.body.filter
     }
 
     try {

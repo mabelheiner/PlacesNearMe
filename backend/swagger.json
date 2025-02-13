@@ -8,7 +8,6 @@
   "host": "placesnearme.onrender.com",
   "basePath": "/",
   "schemes": [
-    "http",
     "https"
   ],
   "paths": {
@@ -104,6 +103,9 @@
                   "example": "any"
                 },
                 "restaurantList": {
+                  "example": "any"
+                },
+                "filter": {
                   "example": "any"
                 }
               }

@@ -9,6 +9,23 @@ import globalStyles from './globalStyles/globalStyles'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
 
+const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
+const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
+const FastFoodPlaceholder = require('../app/assets/images/placeholders/Fast Food.png')
+const GasStationsPlacholder = require('../app/assets/images/placeholders/Gas Stations.png')
+const GolfCoursesPlaceholder = require('../app/assets/images/placeholders/Golf Courses.png')
+const GroceryStoresPlaceholder = require('../app/assets/images/placeholders/Grocery Stores.png')
+const IceCreamPlaceholder = require('../app/assets/images/placeholders/Ice Cream.png')
+const LibrariesPlaceholder = require('../app/assets/images/placeholders/Libraries.png')
+const MovieTheaterPlaceholder = require('../app/assets/images/placeholders/Movie Theater.png')
+const ParkPlaceholder = require('../app/assets/images/placeholders/Park.png')
+const PlanetariumsPlaceholder = require('../app/assets/images/placeholders/Planetariums.png')
+const RestaurantPlaceholder = require('../app/assets/images/placeholders/Restaurant.png')
+const SalonPlaceHolder = require('../app/assets/images/placeholders/Salons.png')
+const ZooPlaceholder = require('../app/assets/images/placeholders/Zoos.png')
+const logoPlaceholder = require('../app/assets/images/placeholders/logoPlaceholder.jpg')
+
+
 interface Restaurant {
   id: number,
   name: string,
@@ -31,6 +48,9 @@ export default function Room() {
   const navigation = useNavigation()
   const [modalVisible, setModalVisible] = useState(false)
 
+  const [filterLabel, setFilterLabel] = useState<string>('')
+  const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder)
+
   useEffect(() => {
     const fetchRoomId = async () => {
       setLoading(true)
@@ -47,6 +67,38 @@ export default function Room() {
             console.log('json room', roomData)
             setRoomInfo(roomData)
             setRestaurants(roomData.restaurantList)
+            setFilterLabel(roomData.filter)
+
+            let filterLabel = roomData.filter
+            if (filterLabel === "Restaurants") {
+              setPlaceholderImage(RestaurantPlaceholder)
+            } else if (filterLabel === 'Fast Food') {
+              setPlaceholderImage(FastFoodPlaceholder)
+            } else if (filterLabel === 'Movie Theaters') {
+              setPlaceholderImage(MovieTheaterPlaceholder)
+            } else if (filterLabel === 'Golf Courses') {
+              setPlaceholderImage(GolfCoursesPlaceholder)
+            } else if (filterLabel === 'Cafes') {
+              setPlaceholderImage(CafesPlaceholder)
+            } else if (filterLabel === 'Gas Stations') {
+              setPlaceholderImage(GasStationsPlacholder)
+            } else if (filterLabel === 'Libraries') {
+              setPlaceholderImage(LibrariesPlaceholder)
+            } else if (filterLabel === 'Ice Cream') {
+              setPlaceholderImage(IceCreamPlaceholder)
+            } else if (filterLabel === 'Dojos') {
+              setPlaceholderImage(DojosPlaceholder)
+            } else if (filterLabel === 'Grocery Stores') {
+              setPlaceholderImage(GroceryStoresPlaceholder)
+            } else if (filterLabel === 'Planetariums') {
+              setPlaceholderImage(PlanetariumsPlaceholder)
+            } else if (filterLabel === 'Salons') {
+              setPlaceholderImage(SalonPlaceHolder)
+            } else if (filterLabel === 'Zoos') {
+              setPlaceholderImage(ZooPlaceholder)
+            } else {
+              setPlaceholderImage(logoPlaceholder)
+            }
 
             navigation.setOptions({
               title: `Room: ${roomData.publicId}`
@@ -140,7 +192,7 @@ export default function Room() {
                   <View style={styles.restaurantCard}>
                     <Text style={{position: 'absolute', top: 0, right: 0}}>{currentIndex + 1}/{restaurants.length}</Text>
                     <View style={styles.place}>
-                      <Place restaurant={restaurants[currentIndex]} />
+                      <Place restaurant={restaurants[currentIndex]} placeholderImage={placeholderImage} />
                     </View>                    
                   </View>                  
               </>

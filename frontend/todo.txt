@@ -6,11 +6,12 @@ add mongodb backend *done
 
 TODO:
 - create share link
-- add filter for more than food (i.e. parks/recreation)
+- add filter for more than food (i.e. parks/recreation) *done
 - swipe to delete
 - save and post results
 - style
 - icon/splash page
 - search radius (miles)
-- unique places
-- deal with long lists (i.e. Portland - max results)
+- unique places *done
+- deal with long lists (i.e. Portland - max results) *done
+- export to apk *done

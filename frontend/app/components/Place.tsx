@@ -2,8 +2,6 @@ import { StyleSheet, Text, View, Image, Linking } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const logoPlaceholder = require("../assets/images/logoPlaceholder.jpg");
-
 interface Restaurant {
   id: number;
   name: string;
@@ -16,10 +14,11 @@ interface Restaurant {
 
 interface PlaceProps {
   restaurant: Restaurant;
+  placeholderImage: Image;
 }
 
-const Place: React.FC<PlaceProps> = ({ restaurant }) => {
-  const [imageSource, setImageSource] = useState<any>(logoPlaceholder); // Default to the local placeholder
+const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
+  const [imageSource, setImageSource] = useState<any>(placeholderImage); // Default to the local placeholder
 
   useEffect(() => {
     // If the logoUrl is provided and valid, use it. Otherwise, fetch the logo from the API or use placeholder.
@@ -32,7 +31,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
   }, [restaurant]);
 
   if (!restaurant) {
-    return <Text>No restuarant data.</Text>
+    return <Text>No place data.</Text>
   } else {
     //console.log('Restaurant', restaurant)
   }
@@ -51,7 +50,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
         setImageSource({uri: response.url})
         return
       } else {
-        setImageSource(logoPlaceholder)
+        setImageSource(placeholderImage)
         return
       }
     } catch (error) {
@@ -63,7 +62,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant }) => {
 
   const handleImageError = () => {
     //console.log(`Failed to load image: ${restaurant.logoUrl}, falling back to placeholder`);
-    setImageSource(logoPlaceholder); // Fallback to placeholder on error
+    setImageSource(placeholderImage); // Fallback to placeholder on error
   };
 
   return (
