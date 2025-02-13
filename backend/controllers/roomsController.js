@@ -42,7 +42,7 @@ const addRoom = async (req, res) => {
 const updateRoom = async (req, res) => {
     console.log('Req.body received', req.body)
     try {
-        const updatedRoom = await Room.findOneAndUpdate({publicId: req.params.id}, {favorites: req.body.favorites}, {new: true}, {runValidators: true})
+        const updatedRoom = await Room.findOneAndUpdate({publicId: req.params.id}, {favorites: req.body}, {new: true}, {runValidators: true})
         res.status(200).json({body: req.body, updatedRoom: updatedRoom})
     } catch (error) {
         res.json(error)
