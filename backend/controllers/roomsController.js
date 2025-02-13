@@ -32,7 +32,7 @@ const addRoom = async (req, res) => {
         res.status(201).json({room: newRoom})
     } catch (error) {
         console.log('Error', error)
-        res.status(400).json({error: error, message: 'Room cannot be added'})
+        res.status(400).json({error: error, body: body, message: 'Room cannot be added'})
     }
 
     /* res.status(200).json({message: 'Room Added'}) */
