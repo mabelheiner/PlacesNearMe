@@ -255,12 +255,16 @@ export default function Host() {
       restaurantList: restaurants,
       filter: label
     }
-    //console.log('Room', room)
+    console.log('Room', room)
 
     try {
-      const response = await axios.post('https://placesnearme.onrender.com/rooms/', room)
-      //console.log('Response', response)
-      //console.log('Response status', response.status === 201) 
+      const response = await axios.post('https://placesnearme.onrender.com/rooms/', room, {
+        headers: {
+          "Content-Type": "applicaton/json"
+        }
+    })
+      console.log('Response', response)
+      console.log('Response status', response.status === 201) 
       if (response.status === 201) {
         //console.log('New Room', response.data.room)
         AsyncStorage.setItem('Room', JSON.stringify(response.data.room))
