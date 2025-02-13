@@ -260,7 +260,7 @@ export default function Host() {
     try {
       const response = await axios.post('https://placesnearme.onrender.com/rooms/', room, {
         headers: {
-          "Content-Type": "applicaton/json"
+          "Content-Type": "application/json"
         }
     })
       console.log('Response', response)
@@ -272,7 +272,9 @@ export default function Host() {
       }
     } catch (error) {
       console.log('Error', error)
-    } 
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
