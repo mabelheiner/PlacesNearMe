@@ -149,7 +149,7 @@ export default function Room() {
     const addSavedtoDatabase = async () => {
       const favorites = saved
       try {
-        const response = await axios.put(`https://placesnearme.onrender.com/rooms/${roomInfo.publicId}`, favorites, {
+        const response = await axios.patch(`https://placesnearme.onrender.com/rooms/${roomInfo.publicId}`, favorites, {
           headers: {
             "Content-Type": "application/json"
           }
@@ -167,7 +167,7 @@ export default function Room() {
     console.log('Saved', saved)
 
     
-    if (currentIndex === restaurants.length - 1 && currentIndex != 0) {
+    if (currentIndex === restaurants.length && currentIndex != 0) {
       alert('end of list')
       addSavedtoDatabase()
     }
