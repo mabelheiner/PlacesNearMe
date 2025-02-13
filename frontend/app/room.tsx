@@ -2,13 +2,14 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Place from './components/Place'
-import { useNavigation } from 'expo-router'
+import { router, useNavigation, useRouter } from 'expo-router'
 import { Gesture, GestureDetector, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
 import Animated, { FlipInEasyX, runOnJS, useSharedValue } from 'react-native-reanimated'
 import globalStyles from './globalStyles/globalStyles'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
 import axios from 'axios'
+import { navigate } from 'expo-router/build/global-state/routing'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -53,6 +54,7 @@ export default function Room() {
   const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder)
 
   const [saved, setSaved] = useState<any[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     const fetchRoomId = async () => {
@@ -71,6 +73,7 @@ export default function Room() {
             setRoomInfo(roomData)
             setRestaurants(roomData.restaurantList)
             setFilterLabel(roomData.filter)
+            AsyncStorage.setItem('Filter', roomData.filter)
             setRoomId(roomData.publicId)
 
             let filterLabel = roomData.filter
@@ -148,6 +151,7 @@ export default function Room() {
   useEffect(() => {
     const addSavedtoDatabase = async () => {
       const favorites = saved
+      AsyncStorage.setItem('Favorites', JSON.stringify(favorites))
       try {
         const response = await axios.patch(`https://placesnearme.onrender.com/rooms/${roomInfo.publicId}`, favorites, {
           headers: {
@@ -161,6 +165,8 @@ export default function Room() {
         }
       } catch (error) {
           console.log('Error', error)
+      } finally {
+        router.push('/saved')
       }
     }
     console.log('Current index', currentIndex)
@@ -170,6 +176,8 @@ export default function Room() {
     if (currentIndex === restaurants.length && currentIndex != 0) {
       alert('end of list')
       addSavedtoDatabase()
+      router.push('/saved')
+      
     }
   }, [currentIndex])
 

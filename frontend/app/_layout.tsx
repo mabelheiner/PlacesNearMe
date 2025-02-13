@@ -32,6 +32,7 @@ export default function _layout() {
         <Stack.Screen name='host' />
         <Stack.Screen name="join" />
         <Stack.Screen name="room" />
+        <Stack.Screen name='saved' />
     </Stack>
   )
 }
