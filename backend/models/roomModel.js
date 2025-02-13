@@ -29,7 +29,7 @@ const roomSchema = mongoose.Schema({
         }}],
         required: true,
     },
-    label: {
+    filter: {
         type: String,
         required: true
     },
