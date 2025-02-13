@@ -40,7 +40,7 @@ interface Restaurant {
 export default function Room() {
   const [roomId, setRoomId] = useState<string>('')
   const [restaurants, setRestaurants] = useState<any[]>([])
-  const [roomInfo, setRoomInfo] = useState<{id: string; restaurants: Restaurant[]}>({id: '', restaurants: []})
+  const [roomInfo, setRoomInfo] = useState<{publicId: string; restaurants: Restaurant[]}>({publicId: '', restaurants: []})
   const [loading, setLoading] = useState(false)
   
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -71,6 +71,7 @@ export default function Room() {
             setRoomInfo(roomData)
             setRestaurants(roomData.restaurantList)
             setFilterLabel(roomData.filter)
+            setRoomId(roomData.publicId)
 
             let filterLabel = roomData.filter
             if (filterLabel === "Restaurants") {
@@ -148,7 +149,7 @@ export default function Room() {
     const addSavedtoDatabase = async () => {
       const favorites = saved
       try {
-        const response = await axios.put(`https://placesnearme.onrender.com/rooms/${roomId}`, favorites, {
+        const response = await axios.put(`https://placesnearme.onrender.com/rooms/${roomInfo.publicId}`, favorites, {
           headers: {
             "Content-Type": "application/json"
           }
@@ -165,7 +166,7 @@ export default function Room() {
     console.log('Current index', currentIndex)
     console.log('Saved', saved)
 
-    AsyncStorage.setItem('Saved', JSON.stringify(saved))
+    
     if (currentIndex === restaurants.length - 1 && currentIndex != 0) {
       alert('end of list')
       addSavedtoDatabase()
