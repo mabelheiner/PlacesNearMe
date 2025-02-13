@@ -8,6 +8,7 @@ import Animated, { FlipInEasyX, runOnJS, useSharedValue } from 'react-native-rea
 import globalStyles from './globalStyles/globalStyles'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
+import axios from 'axios'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -50,6 +51,8 @@ export default function Room() {
 
   const [filterLabel, setFilterLabel] = useState<string>('')
   const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder)
+
+  const [saved, setSaved] = useState<any[]>([])
 
   useEffect(() => {
     const fetchRoomId = async () => {
@@ -141,34 +144,60 @@ export default function Room() {
     )
   }
 
+  useEffect(() => {
+    const addSavedtoDatabase = async () => {
+      const favorites = saved
+      try {
+        const response = await axios.put(`https://placesnearme.onrender.com/rooms/${roomId}`, favorites, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+
+        console.log('Response', response)
+        if (response.status === 200) {
+          console.log('Success!')
+        }
+      } catch (error) {
+          console.log('Error', error)
+      }
+    }
+    console.log('Current index', currentIndex)
+    console.log('Saved', saved)
+
+    AsyncStorage.setItem('Saved', JSON.stringify(saved))
+    if (currentIndex === restaurants.length - 1 && currentIndex != 0) {
+      alert('end of list')
+      addSavedtoDatabase()
+    }
+  }, [currentIndex])
+
   const swipeGesture = Gesture.Pan().onEnd((event) => {
     //console.log('Gesture detected')
     const { translationX } = event
 
     if (
       translationX < -50 &&
-      restaurantIndex.value < restaurants.length - 1
+      restaurantIndex.value < restaurants.length - 2
     ) {
-      restaurantIndex.value += 1
+      restaurantIndex.value += 1  
+      if (currentIndex != restaurants.length )    
       runOnJS(setCurrentIndex)(restaurantIndex.value)
     } else if (
       translationX > 50 &&
-      restaurantIndex.value > 0
+      restaurantIndex.value >= 0
     ) {
-      restaurantIndex.value -= 1
-      runOnJS(setCurrentIndex)(restaurantIndex.value)
+      restaurantIndex.value += 1
+      setSaved((prevSaved) => [...prevSaved, restaurants[currentIndex]])
+      console.log('Saved', saved)
+
+      if (currentIndex != restaurants.length ) {
+        runOnJS(setCurrentIndex)(restaurantIndex.value)
+      }
     }
 
     //console.log('Restaurant index', restaurantIndex.value)
   })
-
-  const decrementIndex = () => {
-    restaurantIndex.value = Math.max(restaurantIndex.value - 1, 0)
-  }
-
-  const incrementIndex = () => {
-    restaurantIndex.value = Math.min(restaurantIndex.value + 1, restaurants.length - 1)
-  }
   return (
     <GestureHandlerRootView>  
       <InformationPopup title='Room Info' body='Swipe right or left through places within your location to see what you want to do. Swipe right to save the activity and swipe left to pass on the activity' modalVisible={modalVisible} setModalVisible={setModalVisible} />

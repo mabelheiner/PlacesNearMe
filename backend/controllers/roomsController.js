@@ -21,7 +21,8 @@ const addRoom = async (req, res) => {
     const room = {
         publicId: req.body.publicId,
         restaurantList: req.body.restaurantList,
-        filter: req.body.filter
+        filter: req.body.filter,
+        favorites: req.body.favorites,
     }
 
     try {
@@ -39,7 +40,19 @@ const addRoom = async (req, res) => {
 }
 
 const updateRoom = async (req, res) => {
-    res.json('update room')
+    console.log('Req.body received', req.body)
+    const room = {
+        publicId: req.body.publicId,
+        restaurantList: req.body.restaurantList,
+        filter: req.body.filter,
+        favorites: req.body.favorites,
+    }
+    try {
+        const updatedRoom = await Room.findByIdAndUpdate(req.params.id, room)
+        res.status(200).json(updatedRoom)
+    } catch (error) {
+        res.json(error)
+    }
 }
 
 const deleteRoom = async (req, res) => {
