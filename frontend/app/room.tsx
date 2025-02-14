@@ -51,14 +51,13 @@ export default function Room() {
   const [modalVisible, setModalVisible] = useState(false)
 
   const [filterLabel, setFilterLabel] = useState<string>('')
-  const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder)
+  const [placeholderImage, setPlaceholderImage] = useState(CafesPlaceholder)
 
   const [saved, setSaved] = useState<any[]>([])
   const router = useRouter()
 
   useEffect(() => {
     const fetchRoomId = async () => {
-      setLoading(true)
       try {
 
         const responseRoom = await AsyncStorage.getItem('Room')
@@ -69,14 +68,16 @@ export default function Room() {
 
           if (jsonParse[0] !== undefined) {
             const roomData = jsonParse[0]
-            console.log('json room', roomData)
+            console.log('json room', roomData.filter)
             setRoomInfo(roomData)
             setRestaurants(roomData.restaurantList)
             setFilterLabel(roomData.filter)
             AsyncStorage.setItem('Filter', roomData.filter)
             setRoomId(roomData.publicId)
 
+            console.log('Filter', roomData.filter)
             let filterLabel = roomData.filter
+            console.log('Filter label', filterLabel)
             if (filterLabel === "Restaurants") {
               setPlaceholderImage(RestaurantPlaceholder)
             } else if (filterLabel === 'Fast Food') {
@@ -129,6 +130,7 @@ export default function Room() {
       }
     }
 
+    setLoading(true)
     fetchRoomId()
   }, [])
 
@@ -141,12 +143,6 @@ export default function Room() {
       )
     })
   }, [navigation])
-
-  if (loading) {
-    return (
-      <Text>Loading...</Text>
-    )
-  }
 
   useEffect(() => {
     const addSavedtoDatabase = async () => {
@@ -162,51 +158,52 @@ export default function Room() {
         console.log('Response', response)
         if (response.status === 200) {
           console.log('Success!')
+          router.push('/saved')
+        } else {
+          alert('Error in saving your favorites, please try again.')
+          addSavedtoDatabase()
         }
       } catch (error) {
           console.log('Error', error)
-      } finally {
-        router.push('/saved')
+          alert('Error in saving your favorites, please try again.')
       }
     }
     console.log('Current index', currentIndex)
     console.log('Saved', saved)
 
     
-    if (currentIndex === restaurants.length && currentIndex != 0) {
-      alert('end of list')
+    if (currentIndex === restaurants.length - 1 && currentIndex != 0) {
+      //alert('end of list')
       addSavedtoDatabase()
-      router.push('/saved')
+      //router.push('/saved')
       
     }
   }, [currentIndex])
 
+  if (loading) {
+    return (
+      <Text>Loading...</Text>
+    )
+  }
+
   const swipeGesture = Gesture.Pan().onEnd((event) => {
-    //console.log('Gesture detected')
-    const { translationX } = event
-
-    if (
-      translationX < -50 &&
-      restaurantIndex.value < restaurants.length - 2
-    ) {
-      restaurantIndex.value += 1  
-      if (currentIndex != restaurants.length )    
-      runOnJS(setCurrentIndex)(restaurantIndex.value)
-    } else if (
-      translationX > 50 &&
-      restaurantIndex.value >= 0
-    ) {
-      restaurantIndex.value += 1
-      setSaved((prevSaved) => [...prevSaved, restaurants[currentIndex]])
-      console.log('Saved', saved)
-
-      if (currentIndex != restaurants.length ) {
-        runOnJS(setCurrentIndex)(restaurantIndex.value)
+    const { translationX } = event;
+  
+    if (translationX < -50 && restaurantIndex.value < restaurants.length - 1) {
+      restaurantIndex.value += 1;
+      runOnJS(setCurrentIndex)(restaurantIndex.value);
+    } 
+    else if (translationX > 50 && restaurantIndex.value < restaurants.length - 1) {
+      // Ensure currentIndex is valid before accessing `restaurants[currentIndex]`
+      if (currentIndex < restaurants.length) {
+        setSaved((prevSaved) => [...prevSaved, restaurants[currentIndex]]);
       }
+      
+      restaurantIndex.value += 1;
+      runOnJS(setCurrentIndex)(restaurantIndex.value);
     }
-
-    //console.log('Restaurant index', restaurantIndex.value)
-  })
+  });
+  
   return (
     <GestureHandlerRootView>  
       <InformationPopup title='Room Info' body='Swipe right or left through places within your location to see what you want to do. Swipe right to save the activity and swipe left to pass on the activity' modalVisible={modalVisible} setModalVisible={setModalVisible} />

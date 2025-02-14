@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, View, TextInput, TouchableOpacity, Button } from 'react-native'
+import { Modal, Pressable, StyleSheet, Text, View, TextInput, TouchableOpacity, Button, ActivityIndicator } from 'react-native'
 import React, {useEffect, useState} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles'
@@ -13,29 +13,38 @@ export default function Join() {
   const router = useRouter()
   const navigation = useNavigation()
   const [modalVisible, setModalVisible] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const findRoom = async() => {
-    console.log('Find room triggered')
+    setLoading(true)
     try {
       const response = await axios.get(`https://placesnearme.onrender.com/rooms/${roomCode}`)
       console.log('Response', response)
-      if (response.status === 200) {
-        const rooms = JSON.stringify(response.data)
-        AsyncStorage.setItem('Room', rooms)
-        router.push('/room')
+      console.log('Response room data', response.data)
+      console.log('id', response.data._id)
+      if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
+        const room = response.data[0]
+        console.log('Room:', room)
+        console.log('Room id check', room._id)
+
+        const roomData = JSON.stringify(room)
+        await AsyncStorage.setItem('Room', roomData)
+        await AsyncStorage.setItem('Filter', JSON.stringify(room.filter))
+
+        const roomStored = await AsyncStorage.getItem('Room')
+        console.log('Room found in storage', roomStored)
+        if (roomStored) {
+          router.push('/room')
+        }
       } else {
         alert('Cannot find room with that room code')
       }
     } catch (error) {
       console.log('Error', error)
       alert('Cannot find room with that room code.')
+    } finally {
+      setLoading(false)
     }
-    console.log('After try catch')
-  }
-
-  const joinInfo = () => {
-    alert('Join info')
-    console.log('Join info')
   }
 
   useEffect(() => {
@@ -48,11 +57,18 @@ export default function Join() {
     })
   }, [navigation])
 
+  if (loading) {
+    return (
+      <ActivityIndicator size="large" color="blue" />
+    )
+  }
+
   return (
     <SafeAreaView>
       <InformationPopup title="Join Info" body='Enter the room code given when hosting a page, should be a six character number (i.e. 123456)' modalVisible={modalVisible} setModalVisible={setModalVisible} />
       <TextInput
         style={globalStyles.textInput}
+        keyboardType='numeric'
         placeholder='Room Code'
         value={roomCode}
         onChangeText={setRoomCode}

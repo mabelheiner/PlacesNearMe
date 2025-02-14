@@ -31,12 +31,12 @@ export default function Index() {
       />
       <Pressable style={globalStyles.button}>
         <Text style={globalStyles.buttonText}>
-          <Link href='/host'>Host</Link>
+          <Link href='/host'>Host a Room</Link>
         </Text>
       </Pressable>
       <Pressable style={globalStyles.button}>
         <Text style={globalStyles.buttonText}>
-          <Link href='/join'>Join</Link>
+          <Link href='/join'>Join a Room</Link>
         </Text>
       </Pressable>
     </SafeAreaView>

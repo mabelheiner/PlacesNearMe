@@ -14,11 +14,13 @@ const globalStyles = StyleSheet.create({
         margin: 1,
         minWidth: 100,
         alignItems: 'center',
+        boxShadow: '1px 1px 1px black'
     },
     buttonText: {
         color: THEME.color,
         fontFamily: THEME.fontFamily,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontSize: 20,
     },
     textInput: {
         fontSize: 20,

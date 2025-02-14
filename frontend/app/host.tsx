@@ -114,6 +114,8 @@ export default function Host() {
     }   
   ]
 
+  const [isScrolledToEnd, setIsScrolledToEnd] = useState(false)
+
   const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder);
   const [loading, setLoading] = useState(false)
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
@@ -122,6 +124,12 @@ export default function Host() {
     const formattedName = encodeURIComponent(name);
     return `https://www.google.com/maps/search/${formattedName}/@${lat},${lon},17z`;
   };
+
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent
+    const isEndReached = contentOffset.y + layoutMeasurement.height >= contentSize.height - 400
+    setIsScrolledToEnd(isEndReached)
+  }
 
   const fetchRestaurants = async () => {
     setLoading(true)
@@ -136,7 +144,7 @@ export default function Host() {
     const query = `
       [out:json];
       area[name="${state}"][admin_level=4]->.stateArea;
-      area[name="${city}"][admin_level=8]->.cityArea;
+      area[name="${city.trim()}"][admin_level=8]->.cityArea;
       (
         nwr[${filter}](area.cityArea)(area.stateArea);
       );
@@ -369,10 +377,12 @@ export default function Host() {
           data={restaurants}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderRestaurant}
-          ListEmptyComponent={<Text>No places to display</Text>}
+          onScroll={handleScroll}
+          ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Places within your search criteria will appear here.</Text>}
           />
         </GestureHandlerRootView>
-        <Pressable 
+        {isScrolledToEnd && (
+          <Pressable 
           style={globalStyles.button}
           onPress={generateRoomCode}>
           <Text style={globalStyles.buttonText}>
@@ -381,6 +391,8 @@ export default function Host() {
             {/* </Link> */}
           </Text>
         </Pressable>
+        )}
+        
         </>
       )}
       </GestureHandlerRootView>
