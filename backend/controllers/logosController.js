@@ -9,7 +9,7 @@ const getLogoByName = async (req, res) => {
     const logoInfo = await Logo.findOne({name: req.params.name})
     //console.log('Logo url found', logoInfo)
 
-    if (logoInfo.logoUrl){
+    if (logoInfo.logoUrl != null){
         res.status(200).json({logoUrl: logoInfo.logoUrl})
     } else {
         const newReq = {

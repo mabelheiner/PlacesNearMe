@@ -42,7 +42,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
   
     try {
       //const response = await fetch(`https://api.kickfire.com/logo?website=${website}.com`);
-      const response = await fetch(`https://placesnearme.onrender.com/logos/${name}`)
+      const response = await axios.get(`https://placesnearme.onrender.com/logos/${name}`)
       console.log('Response', response)
       //console.log('Fetch url', `https://api.kickfire.com/logo?website=${website}.com`);
 
