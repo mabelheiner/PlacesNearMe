@@ -2,13 +2,16 @@ const mongoose = require('mongoose')
 
 const logoSchema = mongoose.Schema({
     name: {
-        type: [String],
+        type: String,
         required: true
     },
     logoUrl: {
         type: String,
-        required: true
     },
+    count: {
+        type: Number,
+        default: 0
+    }
 })
 
 const Logo = mongoose.model('logos', logoSchema)

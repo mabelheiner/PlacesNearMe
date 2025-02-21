@@ -37,17 +37,20 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
   }
 
   const fetchLogo = async (website: string) => {
-    website = website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
+    const name = website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
     //console.log('Website after cleaning:', website);
   
     try {
-      const response = await fetch(`https://api.kickfire.com/logo?website=${website}.com`);
+      //const response = await fetch(`https://api.kickfire.com/logo?website=${website}.com`);
+      const response = await fetch(`https://placesnearme.onrender.com/logos/${name}`)
+      console.log('Response', response)
       //console.log('Fetch url', `https://api.kickfire.com/logo?website=${website}.com`);
 
       //console.log('response', response)
       
       if (response.status === 200) {
-        setImageSource({uri: response.url})
+        //setImageSource({uri: response})
+        setImageSource(placeholderImage)
         return
       } else {
         setImageSource(placeholderImage)

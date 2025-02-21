@@ -3,7 +3,7 @@ const router = express.Router()
 
 const logosController = require('../controllers/logosController')
 
-router.get('/', logosController.getAllLogos)
+router.get('/', logosController.getLogoByName)
 router.get('/:name', logosController.getLogoByName)
 router.post('/', logosController.addLogo)
 router.patch('/:id', logosController.updateLogo)

@@ -7,7 +7,7 @@ add mongodb backend *done
 TODO:
 - create share link
 - add filter for more than food (i.e. parks/recreation) *done
-- swipe to delete
+- swipe to delete *done
 - save and post results
 - style
 - icon/splash page
