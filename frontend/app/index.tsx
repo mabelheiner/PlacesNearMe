@@ -1,5 +1,5 @@
 import { StyleSheet, Pressable, Text, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles' 
 import { Link } from 'expo-router'
@@ -9,7 +9,7 @@ import InformationPopup from './components/InformationPopup'
 
 export default function Index() {
   const [modalVisible, setModalVisible] = useState(false);
-
+  
   return (
     <SafeAreaView style={globalStyles.containerContentCenter}>
       <StatusBar style='dark' translucent={true} hidden={false} />

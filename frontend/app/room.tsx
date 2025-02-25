@@ -10,6 +10,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
 import axios from 'axios'
 import { navigate } from 'expo-router/build/global-state/routing'
+import supabase from './db.mjs'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -113,9 +114,46 @@ export default function Room() {
             })
           } else {
             const roomData = jsonParse
-            console.log('json room', roomData)
+            console.log('json room here', roomData)
             setRoomInfo(roomData)
             setRestaurants(roomData.restaurantList)
+
+            setFilterLabel(roomData.filter)
+            AsyncStorage.setItem('Filter', roomData.filter)
+            setRoomId(roomData.publicId)
+
+            console.log('Filter', roomData.filter)
+            let filterLabel = roomData.filter
+            console.log('Filter label', filterLabel)
+            if (filterLabel === "Restaurants") {
+              setPlaceholderImage(RestaurantPlaceholder)
+            } else if (filterLabel === 'Fast Food') {
+              setPlaceholderImage(FastFoodPlaceholder)
+            } else if (filterLabel === 'Movie Theaters') {
+              setPlaceholderImage(MovieTheaterPlaceholder)
+            } else if (filterLabel === 'Golf Courses') {
+              setPlaceholderImage(GolfCoursesPlaceholder)
+            } else if (filterLabel === 'Cafes') {
+              setPlaceholderImage(CafesPlaceholder)
+            } else if (filterLabel === 'Gas Stations') {
+              setPlaceholderImage(GasStationsPlacholder)
+            } else if (filterLabel === 'Libraries') {
+              setPlaceholderImage(LibrariesPlaceholder)
+            } else if (filterLabel === 'Ice Cream') {
+              setPlaceholderImage(IceCreamPlaceholder)
+            } else if (filterLabel === 'Dojos') {
+              setPlaceholderImage(DojosPlaceholder)
+            } else if (filterLabel === 'Grocery Stores') {
+              setPlaceholderImage(GroceryStoresPlaceholder)
+            } else if (filterLabel === 'Planetariums') {
+              setPlaceholderImage(PlanetariumsPlaceholder)
+            } else if (filterLabel === 'Salons') {
+              setPlaceholderImage(SalonPlaceHolder)
+            } else if (filterLabel === 'Zoos') {
+              setPlaceholderImage(ZooPlaceholder)
+            } else {
+              setPlaceholderImage(logoPlaceholder)
+            }
 
             navigation.setOptions({
               title: `Room: ${roomData.publicId}`
@@ -146,26 +184,23 @@ export default function Room() {
 
   useEffect(() => {
     const addSavedtoDatabase = async () => {
+      setLoading(true)
       const favorites = saved
       AsyncStorage.setItem('Favorites', JSON.stringify(favorites))
       try {
-        const response = await axios.patch(`https://placesnearme.onrender.com/rooms/${roomInfo.publicId}`, favorites, {
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
+        const response = await supabase.from('rooms').update({'savedFavorites': favorites}).eq('publicId', roomId).select()
 
-        console.log('Response', response)
+        console.log('Response from favorites', response)
         if (response.status === 200) {
           console.log('Success!')
           router.push('/saved')
         } else {
-          alert('Error in saving your favorites, please try again.')
-          addSavedtoDatabase()
+          console.log('Error in saving your favorites, please try again.')
         }
       } catch (error) {
           console.log('Error', error)
-          alert('Error in saving your favorites, please try again.')
+      } finally {
+        setLoading(false)
       }
     }
     console.log('Current index', currentIndex)

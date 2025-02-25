@@ -11,6 +11,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
 import Animated, {runOnJS} from 'react-native-reanimated'
+import {createClient} from '@supabase/supabase-js'
+import supabase from './db.mjs'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -266,18 +268,18 @@ export default function Host() {
     console.log('Room', room)
 
     try {
-      const response = await axios.post('https://placesnearme.onrender.com/rooms/', room, {
-        headers: {
-          "Content-Type": "application/json"
-        }
-    })
-      console.log('Response', response)
-      console.log('Response status', response.status === 201) 
-      if (response.status === 201) {
-        //console.log('New Room', response.data.room)
-        AsyncStorage.setItem('Room', JSON.stringify(response.data.room))
-        router.push('/room') 
-      }
+      const response = await supabase.from('rooms').upsert({
+        publicId: room.publicId,
+        restaurantList: room.restaurantList,
+        filter: room.filter
+      }).select()
+
+      console.log('Room response', response)
+
+      if (response.status === 201 && response.data !== null) {
+        AsyncStorage.setItem('Room', JSON.stringify(response.data[0]))
+        router.push('/room')
+      } 
     } catch (error) {
       console.log('Error', error)
     } finally {

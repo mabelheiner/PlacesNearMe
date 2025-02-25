@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from 'expo-router'
 import InformationPopup from './components/InformationPopup'
+import supabase from './db.mjs'
+
 export default function Join() {
   const [roomCode, setRoomCode] = useState('')
   const router = useRouter()
@@ -18,10 +20,9 @@ export default function Join() {
   const findRoom = async() => {
     setLoading(true)
     try {
-      const response = await axios.get(`https://placesnearme.onrender.com/rooms/${roomCode}`)
-      console.log('Response', response)
-      console.log('Response room data', response.data)
-      console.log('id', response.data._id)
+      const response = await supabase.from('rooms').select('*').eq('publicId', roomCode)
+
+      console.log('Response from join', response)
       if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
         const room = response.data[0]
         console.log('Room:', room)

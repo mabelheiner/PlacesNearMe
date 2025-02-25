@@ -5,6 +5,7 @@ import axios from 'axios';
 import Place from './components/Place';
 import globalStyles from './globalStyles/globalStyles';
 import { useRouter } from 'expo-router';
+import supabase from './db.mjs'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -49,13 +50,14 @@ const GroupResults = () => {
           const roomId = roomData.publicId;
           console.log('Room ID:', roomId);
 
-          const response = await axios.get(`https://placesnearme.onrender.com/rooms/${roomId}`);
-          console.log('Response', response)
-          if (response.status === 200) {
+          /* const response = await axios.get(`https://placesnearme.onrender.com/rooms/${roomId}`); */
+          const response = await supabase.from('rooms').select('*').eq('publicId', roomId)
+          console.log('Response from supabase', response)
+          if (response.status === 200 && response?.data) {
             console.log('Setting room info', response.data[0])
             const room = response.data[0];
             setRoomInfo(room);
-            setGroupFavorites(room.favorites)
+            setGroupFavorites(room.savedFavorites)
 
             let filterLabel = room.filter
             console.log('Filter label', filterLabel)

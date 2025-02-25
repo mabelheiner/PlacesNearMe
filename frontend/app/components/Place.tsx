@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, Image, Linking } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import supabase from '../db.mjs'
 
 interface Restaurant {
   id: number;
@@ -21,47 +22,46 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
   const [imageSource, setImageSource] = useState<any>(placeholderImage); // Default to the local placeholder
 
   useEffect(() => {
-    // If the logoUrl is provided and valid, use it. Otherwise, fetch the logo from the API or use placeholder.
+    const fetchLogo = async (website: string) => {
+      website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
+      //console.log('Website after cleaning:', website);
+  
+      try {
+        const response = await supabase
+        .from('logos')
+        .select('logoUrl, requestCount')
+        .eq('name', website)
+        .single()
+
+        //console.log('Response from logos', response)
+        
+        if (response?.data){
+          const updatedCount = (response.data.requestCount || 0)
+
+          await supabase.from('logos').update({requestCount: updatedCount}).eq('name', website)
+
+          setImageSource(response.data.logoUrl ? response.data.logoUrl : placeholderImage)
+        } else {
+          await supabase.from('logos').insert({ name: website, requestCount: 1})
+
+          setImageSource(placeholderImage);
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+
+    
     if (restaurant.logoUrl && restaurant.logoUrl.trim() !== "") {
       setImageSource({ uri: restaurant.logoUrl });
     } else {
-      fetchLogo(restaurant.name); // Fetch logo if it's not available
+      fetchLogo(restaurant.name); 
     }
-    //console.log('Restaurant received', restaurant);
   }, [restaurant]);
 
   if (!restaurant) {
     return <Text>No place data.</Text>
-  } else {
-    //console.log('Restaurant', restaurant)
-  }
-
-  const fetchLogo = async (website: string) => {
-    const name = website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
-    //console.log('Website after cleaning:', website);
-  
-    try {
-      //const response = await fetch(`https://api.kickfire.com/logo?website=${website}.com`);
-      const response = await axios.get(`https://placesnearme.onrender.com/logos/${name}`)
-      console.log('Response', response)
-      //console.log('Fetch url', `https://api.kickfire.com/logo?website=${website}.com`);
-
-      //console.log('response', response)
-      
-      if (response.status === 200) {
-        //setImageSource({uri: response})
-        setImageSource(placeholderImage)
-        return
-      } else {
-        setImageSource(placeholderImage)
-        return
-      }
-    } catch (error) {
-      console.error('Error fetching logo:', error);
-    }
-  };
-  
-  
+  }   
 
   const handleImageError = () => {
     //console.log(`Failed to load image: ${restaurant.logoUrl}, falling back to placeholder`);
