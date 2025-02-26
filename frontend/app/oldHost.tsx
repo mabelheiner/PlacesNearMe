@@ -1,18 +1,18 @@
-import { StyleSheet, Text, View, TextInput, Linking, Button, ActivityIndicator, Pressable, Keyboard, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Linking, Button, ActivityIndicator, Keyboard, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import globalStyles from './globalStyles/globalStyles'
 import RNPickerSelect from 'react-native-picker-select'
 import axios from 'axios'
-import { FlatList, Gesture, GestureDetector, GestureHandlerRootView, } from 'react-native-gesture-handler'
+import { FlatList, Gesture, GestureDetector, GestureHandlerRootView, Pressable, ScrollView } from 'react-native-gesture-handler'
 import Place from './components/Place'
 import { Link, useNavigation, useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialIcons } from '@expo/vector-icons'
 import InformationPopup from './components/InformationPopup'
 import Animated, {runOnJS} from 'react-native-reanimated'
+import {createClient} from '@supabase/supabase-js'
 import supabase from './db.mjs'
-import { Picker } from '@react-native-picker/picker'
 
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
@@ -232,6 +232,27 @@ export default function Host() {
         />
       </View> */
 
+  const renderRestaurant = ({ item }: { item: Restaurant }) => {
+    //console.log('Item', item)c
+    const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20]) // ignore small horizontal movements
+    .failOffsetY([-5, 5]) // allows vertical scrolling
+    .onEnd((event) => {
+      const {translationX} = event
+
+      if (translationX < -50) {
+        runOnJS(setRestaurants)(restaurants.filter((remove) => remove.name != item.name))
+      }
+    })
+
+    return (
+        <GestureDetector gesture={swipeGesture}>
+        <Animated.View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
+          <Place restaurant={item} placeholderImage={placeholderImage} />
+        </Animated.View>    
+        </GestureDetector> 
+  )}
+
   const generateRoomCode = async () => {
     setLoading(true)
     if (restaurants.length === 0) {
@@ -275,53 +296,33 @@ export default function Host() {
       )
     })
   }, [navigation])
-
-  const renderRestaurant = ({ item }: { item: Restaurant }) => {
-    //console.log('Item', item)c
-    const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-20, 20]) // ignore small horizontal movements
-    .failOffsetY([-5, 5]) // allows vertical scrolling
-    .onEnd((event) => {
-      const {translationX} = event
-
-      if (translationX < -50) {
-        runOnJS(setRestaurants)(restaurants.filter((remove) => remove.name != item.name))
-      }
-    })
-
-    return (
-        <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
-          <Place restaurant={item} placeholderImage={placeholderImage} />
-        </Animated.View>    
-        </GestureDetector> 
-  )}
   
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <InformationPopup title='Host Info' body='Enter the city and state in which you would like to search for fun places in. Swipe down to look through these activities and when you are happy with what is there, click "Create Room" to create a room with a unique six digit code which your friends can enter in their "Join" page to look through the same activities' modalVisible={modalVisible} setModalVisible={setModalVisible} />
-      <GestureHandlerRootView style={{flex: 1}}>
+      <GestureHandlerRootView style={{ flex: 1}}>
       <TextInput
         style={globalStyles.textInput}
         placeholder='City to Search'
         value={city}
         onChangeText={setCity}
       />
-      <Picker
-        selectedValue={state}
-        onValueChange={(stateValue) => setState(stateValue)}>
-          {states.map((state, index) => (
-            <Picker.Item key={index} label={state} value={state} />
-          ))}
-      </Picker>
-      <Picker
-        selectedValue={filter}
-        onValueChange={(filterValue, index) => {
-          setFilter(filterValue)
-          /* console.log('filterValue', filterValue)
-          console.log('index', index)
-          console.log('label in filters', filters[index].label) */
-          let filterLabel = filters[index].label
+      <RNPickerSelect
+          onValueChange={(value) => setState(value)}
+          placeholder={{
+            label: 'State to Search',
+            value: null
+          }}
+          items={states.map((state) => ({
+            label: state, 
+            value: state
+          }))}
+      />
+      <RNPickerSelect
+        onValueChange={(value, index) => {
+          setFilter(value)
+          console.log('Filter', filters[index - 1].label)
+          let filterLabel = filters[index -1].label
           setLabel(filterLabel)
           if (filterLabel === "Restaurants") {
             setPlaceholderImage(RestaurantPlaceholder)
@@ -352,14 +353,19 @@ export default function Host() {
           } else {
             setPlaceholderImage(logoPlaceholder)
           }
-        }}>
-          {filters.map((filter, index) => (
-            <Picker.Item key={index} label={filter.label} value={filter.value} />
-          ))}
-      </Picker>
-      <Pressable
+        }}
+        placeholder={{
+          label: 'Type of Activity',
+          value: null
+        }}
+        items={filters.map((filter) => ({
+          label: filter.label,
+          value: filter.value
+        }))}
+        />
+      <Pressable 
         style={globalStyles.button}
-        onPress={fetchRestaurants}
+        onPress={fetchRestaurants} 
         >
         <Text style={globalStyles.buttonText}>Fetch Places</Text>
       </Pressable>
@@ -367,17 +373,17 @@ export default function Host() {
         <ActivityIndicator size="large" color="blue" />
       ): (
         <>
-          <Text style={globalStyles.title}>Preview of Places</Text>
-          <GestureHandlerRootView>
-            <FlatList
-              data={restaurants}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderRestaurant}
-              onScroll={handleScroll}
-              ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Places within your search criteria will appear here.</Text>}
-              />
-          </GestureHandlerRootView>
-          {isScrolledToEnd && (
+        <Text style={globalStyles.title}>Preview of Places</Text>
+        <GestureHandlerRootView>
+        <FlatList
+          data={restaurants}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderRestaurant}
+          onScroll={handleScroll} 
+          ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Places within your search criteria will appear here.</Text>}
+          />
+        </GestureHandlerRootView>
+        {isScrolledToEnd && (
           <Pressable 
           style={globalStyles.button}
           onPress={generateRoomCode}>
@@ -388,6 +394,7 @@ export default function Host() {
           </Text>
         </Pressable>
         )}
+        
         </>
       )}
       </GestureHandlerRootView>

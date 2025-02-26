@@ -10,7 +10,7 @@ const globalStyles = StyleSheet.create({
     button: {
         padding: 10,
         borderRadius: 10,
-        backgroundColor: 'blue',
+        backgroundColor: '#06339f',
         margin: 1,
         minWidth: 100,
         alignItems: 'center',
