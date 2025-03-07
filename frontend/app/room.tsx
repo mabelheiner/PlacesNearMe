@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Place from './components/Place'
 import { router, useNavigation, useRouter } from 'expo-router'
-import { Gesture, GestureDetector, GestureHandlerRootView, Pressable } from 'react-native-gesture-handler'
+import { Gesture, GestureDetector, GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler'
 import Animated, { FlipInEasyX, runOnJS, useSharedValue } from 'react-native-reanimated'
 import globalStyles from './globalStyles/globalStyles'
 import { MaterialIcons } from '@expo/vector-icons'
@@ -212,7 +212,7 @@ export default function Room() {
       addSavedtoDatabase()
       //router.push('/saved')
       
-    }
+    } 
   }, [currentIndex])
 
   if (loading) {
@@ -223,26 +223,33 @@ export default function Room() {
 
   const swipeGesture = Gesture.Pan().onEnd((event) => {
     const { translationX } = event;
+    console.log('translationX', translationX)
+    console.log('Event pan', event)
   
+    // Swiping left (dismiss the current restaurant)
     if (translationX < -50 && restaurantIndex.value < restaurants.length - 1) {
       restaurantIndex.value += 1;
-      runOnJS(setCurrentIndex)(restaurantIndex.value);
+      runOnJS(setCurrentIndex)(restaurantIndex.value); // Update index in JS
     } 
-    else if (translationX > 50 && restaurantIndex.value < restaurants.length - 1) {
-      // Ensure currentIndex is valid before accessing `restaurants[currentIndex]`
-      if (currentIndex < restaurants.length) {
-        setSaved((prevSaved) => [...prevSaved, restaurants[currentIndex]]);
-      }
-      
-      restaurantIndex.value += 1;
-      runOnJS(setCurrentIndex)(restaurantIndex.value);
+    // Swiping right (add the current restaurant to "saved" list)
+    else if (translationX > 50 && restaurantIndex.value < restaurants.length) {
+      runOnJS(setSaved)((prevSaved) => {
+        const updatedSaved = [...prevSaved, restaurants[restaurantIndex.value]];
+        return updatedSaved;
+      });
+      restaurantIndex.value += 1; // Increment the restaurant index
+      runOnJS(setCurrentIndex)(restaurantIndex.value); // Update index in JS
     }
-  });
+  }).runOnJS(true);
+  
   
   return (
     <GestureHandlerRootView>  
       <InformationPopup title='Room Info' body='Swipe right or left through places within your location to see what you want to do. Swipe right to save the activity and swipe left to pass on the activity' modalVisible={modalVisible} setModalVisible={setModalVisible} />
 
+      {loading && (
+        <ActivityIndicator size="large" color='#06339f' style={{position: 'absolute', top: '45%', left: '45%'}} />
+      )}
       {restaurants.length < 0 ? (<Text>Loading...</Text>) : 
       (
         

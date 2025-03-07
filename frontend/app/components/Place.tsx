@@ -19,12 +19,13 @@ interface PlaceProps {
 }
 
 const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
-  const [imageSource, setImageSource] = useState<any>(placeholderImage); // Default to the local placeholder
+  const [imageSource, setImageSource] = useState<Image | string>(placeholderImage); // Default to the local placeholder
 
   useEffect(() => {
     const fetchLogo = async (website: string) => {
       website.trim().replace(/'/g, "").replace(/\s+/g, '').toLowerCase();
       //console.log('Website after cleaning:', website);
+      const logoName = website.replaceAll(" ", "")
   
       try {
         const response = await supabase
@@ -33,18 +34,29 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
         .eq('name', website)
         .single()
 
-        //console.log('Response from logos', response)
+        console.log('Response from logos', response)
         
         if (response?.data){
           const updatedCount = (response.data.requestCount || 0)
 
-          await supabase.from('logos').update({requestCount: updatedCount}).eq('name', website)
+          await supabase.from('logos').update({requestCount: updatedCount + 1}).eq('name', website)
 
-          setImageSource(response.data.logoUrl ? response.data.logoUrl : placeholderImage)
+          if (response.data.logoUrl) {
+            setImageSource(response.data.logoUrl)
+          } else {
+            const logoUrl = `https://logo.clearbit.com/${logoName}.com`
+            console.log(`Grabbing logo from: ${logoUrl}`)
+            setImageSource(logoUrl);
+
+            await supabase.from('logos').insert({ name: website, logoUrl: logoUrl, requestCount: 1})
+          }
         } else {
-          await supabase.from('logos').insert({ name: website, requestCount: 1})
+            const logoUrl = `https://logo.clearbit.com/${logoName}.com`
+            console.log(`Grabbing logo from: ${logoUrl}`)
+            setImageSource(logoUrl);
 
-          setImageSource(placeholderImage);
+            await supabase.from('logos').insert({ name: website, logoUrl: logoUrl, requestCount: 1})
+
         }
       } catch (error) {
         console.error('Error fetching logo:', error);
@@ -52,11 +64,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
     };
 
     
-    if (restaurant.logoUrl && restaurant.logoUrl.trim() !== "") {
-      setImageSource({ uri: restaurant.logoUrl });
-    } else {
-      fetchLogo(restaurant.name); 
-    }
+    fetchLogo(restaurant.name)
   }, [restaurant]);
 
   if (!restaurant) {
@@ -74,7 +82,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
         {restaurant.name}
       </Text>
       <Image
-        source={imageSource}
+        source={typeof imageSource === 'string' ? {uri: imageSource} : placeholderImage}
         style={styles.image}
         onError={handleImageError}
       />   

@@ -5,3 +5,8 @@ look fun!
 
 the sooner we can test the better
 
+BUGS
+- As soon as the filter is changed the placeholderImage changes
+- info button on host and join take a long time to trigger
+- swipe right makes it crash
+- searching with Boise makes it crash
