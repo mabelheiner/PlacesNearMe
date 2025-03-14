@@ -15,7 +15,10 @@ import supabase from './db.mjs'
 import { Picker } from '@react-native-picker/picker'
 import Slider from '@react-native-community/slider'
 import { Ionicons } from '@expo/vector-icons'
+import * as Location from 'expo-location'
+import Checkbox from 'expo-checkbox'
 
+const PlanetariumsPlaceholder = require('../app/assets/images/placeholders/Planetariums.png')
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
 const FastFoodPlaceholder = require('../app/assets/images/placeholders/Fast Food.png')
@@ -26,7 +29,6 @@ const IceCreamPlaceholder = require('../app/assets/images/placeholders/Ice Cream
 const LibrariesPlaceholder = require('../app/assets/images/placeholders/Libraries.png')
 const MovieTheaterPlaceholder = require('../app/assets/images/placeholders/Movie Theater.png')
 const ParkPlaceholder = require('../app/assets/images/placeholders/Park.png')
-const PlanetariumsPlaceholder = require('../app/assets/images/placeholders/Planetariums.png')
 const RestaurantPlaceholder = require('../app/assets/images/placeholders/Restaurant.png')
 const SalonPlaceHolder = require('../app/assets/images/placeholders/Salons.png')
 const ZooPlaceholder = require('../app/assets/images/placeholders/Zoos.png')
@@ -66,6 +68,7 @@ export default function Host() {
   ];
 
   const [filter, setFilter] = useState("default")
+  const [filterIndex, setFilterIndex] = useState(0)
   const [label, setLabel] = useState('')
   const filters = [
     {
@@ -121,25 +124,37 @@ export default function Host() {
       value: '"tourism"="zoo"',
     }   
   ]
-
-  const [isScrolledToEnd, setIsScrolledToEnd] = useState(false)
-
   const [placeholderImage, setPlaceholderImage] = useState(logoPlaceholder);
+  const placeholderImages : Record<string, string> = {
+    "Restaurants" : RestaurantPlaceholder,
+    "Fast Food" : FastFoodPlaceholder,
+    "Movie Theaters" : MovieTheaterPlaceholder,
+    "Golf Courses" : GolfCoursesPlaceholder,
+    "Cafes" : CafesPlaceholder,
+    "Gas Stations" : GasStationsPlacholder,
+    "Ice Cream" : IceCreamPlaceholder,
+    "Dojos" : DojosPlaceholder,
+    "Grocery Stores" : GroceryStoresPlaceholder,
+    "Planetariums" : PlanetariumsPlaceholder,
+    "Salons" : SalonPlaceHolder,
+    "Zoos" : ZooPlaceholder
+  }
+  
   const [loading, setLoading] = useState(false)
   const [timeLeft, setTimeLeft] = useState(0)
-  const rotateAnim = useSharedValue(0)
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+
+  const [location, setLocation] = useState<Location.LocationObject | null>(null)
+  const [isChecked, setChecked] = useState(false)
 
   const generateGoogleMapsLink = (name: string, lat: number, lon: number) => {
     const formattedName = encodeURIComponent(name);
     return `https://www.google.com/maps/search/${formattedName}/@${lat},${lon},17z`;
   };
 
-  const handleScroll = (event: any) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent
-    const isEndReached = contentOffset.y + layoutMeasurement.height >= contentSize.height - 400
-    setIsScrolledToEnd(isEndReached)
-  } 
+  const configurePlaceholder = () => {
+    setPlaceholderImage(placeholderImages[filters[filterIndex - 1]?.label] || logoPlaceholder)
+  }
 
   const fetchCityCenter = async () => {
     const cityQuery = `
@@ -157,8 +172,7 @@ export default function Host() {
       const data = await response.json();
   
       if (data.elements.length > 0) {
-        const { lat, lon } = data.elements[0]; // Extract city center coordinates
-        setCityCenter({ lat, lon });
+        const { lat, lon } = data.elements[0]; 
         return {lat, lon}
       } else {
         console.error("City center not found.");
@@ -167,34 +181,205 @@ export default function Host() {
       console.error("Error fetching city center:", error);
     }
   };
-
-  const fetchRestaurants = async () => {
+  
+  const fetchRestaurantsByDeviceLocation = async () => {
     setLoading(true)
-    setTimeLeft(0)
-    Keyboard.dismiss()
 
-    console.log('Filter', filter)
-    console.log('State', state)
-
-    if (filter == "default") {
-      alert("Please select a filter from the dropdown menu.")
-      setLoading(false)
-      return
-    } else if (state == "default") {
-      alert("Please select a state from the dropdown menu.")
-      setLoading(false)
+    if (filter === "default") {
+      alert("Please select a valid filter.")
       return
     }
 
     try {
-      const response = await fetchCityCenter()
+      if (location != null) {
+        const radiusMeters = miles * 1609.34
 
-      if (response) {
+        const query = `
+          [out:json];
+          (
+            node[${filter}](around:${radiusMeters}, ${location.coords.latitude}, ${location.coords.longitude});
+          );
+          out center;
+        `;
+
+        const url = `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`
+
+        const response = await axios.get(url)
+        let data = response.data.elements;
+
+        console.log('Data from api', data)
+  
+      if (!data.length) {
+        alert("No results found. Please adjust your search.");
+        setRestaurants([])
+        setLoading(false);
+        return;
+      }
+
+      const uniqueRestaurants = new Map<string, Restaurant>()
+  
+      data.slice(0, 50).forEach((item: any) => {
+        const restaurant: Restaurant = {
+          id: item.id,
+          name: item.tags?.name || "Unnamed",
+          address: item.tags["addr:housenumber"]
+            ? `${item.tags["addr:housenumber"]} ${item.tags["addr:street"]}, ${item.tags["addr:city"]}, ${item.tags["addr:state"]} ${item.tags["addr:postcode"]}`
+            : "No street address available",
+          lat: item.lat,
+          lon: item.lon,
+          googleMapsLink: generateGoogleMapsLink(item.tags?.name || "Unnamed", item.lat, item.lon),
+          logoUrl: "",
+        }
+
+        if (restaurant.name === "Unnamed") return;
+
+        const normalizeRestaurantName = restaurant.name.toLowerCase().trim()
+
+        if (!uniqueRestaurants.has(normalizeRestaurantName)) {
+          uniqueRestaurants.set(normalizeRestaurantName, restaurant)
+        }
+      });
+
+      const formattedData = Array.from(uniqueRestaurants.values())
+  
+      await AsyncStorage.setItem("restaurants", JSON.stringify(formattedData));
+  
+      setRestaurants(formattedData);
+      setPlaceholderImage(placeholderImages[filters[filterIndex - 1]?.label] || logoPlaceholder)
+
+      }
+    } catch (error) {
+      console.error("Error fetching restaurants:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchRestaurants = async () => {
+    setLoading(true);
+    setTimeLeft(0);
+    Keyboard.dismiss();
+
+    if (isChecked) {
+      fetchRestaurantsByDeviceLocation()
+      return
+    }
+  
+    if (filter === "default" || state === "default") {
+      alert("Please select a valid filter and state.");
+      setLoading(false);
+      return;
+    }    
+  
+    try {
+      
+      const cityQuery = `
+        [out:json];
+        area[name="${state}"][admin_level=4]->.stateArea;
+        area[name="${city.trim()}"][admin_level=8]->.cityArea;
+        node(area.cityArea)["name"];
+        out center;
+      `;
+  
+      const cityResponse = await fetch(
+        `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(cityQuery)}`
+      );
+      const cityData = await cityResponse.json();
+  
+      if (!cityData.elements.length) {
+        alert("City center not found.");
+        setLoading(false);
+        return;
+      }
+  
+      const { lat, lon } = cityData.elements[0];
+      const radiusMeters = miles * 1609.34; // Convert miles to meters
+  
+      const query = `
+        [out:json];
+        (
+          node[${filter}](around:${radiusMeters}, ${lat}, ${lon});
+        );
+        out center;
+      `;
+  
+      const url = `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`;
+  
+      const response = await axios.get(url);
+      let data = response.data.elements;
+      //console.log('Data from api', data)
+  
+      if (!data.length) {
+        alert("No results found. Please adjust your search.");
+        setRestaurants([])
+        setLoading(false);
+        return;
+      }
+
+      const uniqueRestaurants = new Map<string, Restaurant>()
+  
+      data.slice(0, 50).forEach((item: any) => {
+        const restaurant: Restaurant = {
+          id: item.id,
+          name: item.tags?.name || "Unnamed",
+          address: item.tags["addr:housenumber"]
+            ? `${item.tags["addr:housenumber"]} ${item.tags["addr:street"]}, ${item.tags["addr:city"]}, ${item.tags["addr:state"]} ${item.tags["addr:postcode"]}`
+            : "No street address available",
+          lat: item.lat,
+          lon: item.lon,
+          googleMapsLink: generateGoogleMapsLink(item.tags?.name || "Unnamed", item.lat, item.lon),
+          logoUrl: "",
+        }
+
+        if (restaurant.name === "Unnamed") return;
+
+        const normalizeRestaurantName = restaurant.name.toLowerCase().trim()
+
+        if (!uniqueRestaurants.has(normalizeRestaurantName)) {
+          uniqueRestaurants.set(normalizeRestaurantName, restaurant)
+        }
+      });
+
+      const formattedData = Array.from(uniqueRestaurants.values())
+  
+      await AsyncStorage.setItem("restaurants", JSON.stringify(formattedData));
+  
+      setRestaurants(formattedData);
+      setPlaceholderImage(placeholderImages[filters[filterIndex - 1]?.label] || logoPlaceholder)
+
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  /* const fetchRestaurants = async () => {
+    setLoading(true)
+    setTimeLeft(0)
+    Keyboard.dismiss()
+
+    if (filter === "default" || state === "default") {
+      alert("Please select a valid filter and state.");
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await fetchCityCenter()
+      configurePlaceholder()
+      console.log('City center fetched')
+
+      if (!response) {
+        setLoading(false)
+        return
+      }
+
         const radiusMeters = miles * 1609.34; // Convert miles to meters
-        console.log('city center', cityCenter)
-        console.log('city lat', response.lat)
-        console.log('city lon', response.lon)
-        console.log('response', response)
+        //console.log('city center', cityCenter)
+        //console.log('city lat', response.lat)
+        //console.log('city lon', response.lon)
+        //console.log('response', response)
         const lat = response.lat
         const lon = response.lon
 
@@ -276,18 +461,17 @@ export default function Host() {
           await AsyncStorage.setItem('restaurants', JSON.stringify(formattedData))
     
           setRestaurants(formattedData);
-          console.log('Restaurants set as', formattedData)
+          //console.log('Restaurants set as', formattedData)
         } catch (error) {
           console.error("Error fetching restaurants:", error);
         }
-      }
     } catch (error) {
       console.log('Error', error)
     } finally {
       setLoading(false)
     }    
   }; 
-
+ */
   
   /* <View style={styles.restaurantCard}>
         <Text style={styles.name}>{item.name}</Text>
@@ -299,6 +483,7 @@ export default function Host() {
 
   const generateRoomCode = async () => {
     setLoading(true)
+    console.log('filter', filterIndex)
     if (restaurants.length === 0) {
       alert('Please search for places to choose from.')
       setLoading(false)
@@ -307,7 +492,7 @@ export default function Host() {
     const room = {
       publicId: Math.floor(100000 + Math.random() * 900000).toString(),
       restaurantList: restaurants,
-      filter: label
+      filter: filters[filterIndex-1].label
     }
     console.log('Room', room)
 
@@ -340,6 +525,61 @@ export default function Host() {
       )
     })
   }, [navigation])
+
+  useEffect(() => {
+    async function getCurrentLocation() {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        alert('Device location not enabled, please manually enter the city and state you would like to search in.')
+        return
+      }
+
+      setChecked(true)
+
+      /* let location = await Location.getCurrentPositionAsync({})
+      setLocation(location)
+      alert('Using your device\'s location.')
+      console.log('Device location', location) */
+    }
+
+    getCurrentLocation()
+  }, []) 
+
+  useEffect(() => {
+    console.log('Location changed', location)
+    if (location != null) {
+      console.log('Latitude', location.coords.latitude)
+      console.log('Longitude', location.coords.longitude)
+    } else {
+      setChecked(false)
+    }
+    
+  }, [location])
+
+  useEffect(() => {
+    async function getDeviceLocation() {
+      setLoading(true)
+      setTimeLeft(0)
+
+      if (location != null) {
+        try {
+          let location = await Location.getCurrentPositionAsync({})
+          console.log('location after fetch', location)
+          if (location.coords.latitude !== null && location.coords.longitude !== null) {
+            setLocation(location)
+          }
+        } catch (error) {
+          alert("Error in getting the location of your device. Please check if the appropriate permissions are allowed.")
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        setChecked(false)
+        setLoading(false)
+      }
+    }
+    getDeviceLocation()
+  }, [isChecked])
 
   useEffect(() => {
     if (loading) {
@@ -391,7 +631,7 @@ export default function Host() {
           placeholder='City to search'
           value={city}
           onChangeText={setCity}
-          autoCapitalize='characters'
+          autoCapitalize='words'
         />
         <Picker
           selectedValue={state}
@@ -403,44 +643,18 @@ export default function Host() {
               <Picker.Item key={index} label={state} value={state} style={{color: 'black'}} />
             ))}
         </Picker>
+
+        <View style={{marginLeft: 10, flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 8}}>
+          <Checkbox style={{borderRadius: 4}} color='#06339f' value={isChecked} onValueChange={setChecked} />
+          <Text style={{marginLeft: 8}}>Use device location</Text>
+        </View>
+
+        
         <Picker
           selectedValue={filter}
           onValueChange={(filterValue, index) => {
             setFilter(filterValue)
-            console.log('filterValue', filterValue)
-            console.log('index', index)
-            console.log('label in filters', filters[index - 1].label) 
-            let filterLabel = filters[index - 1].label
-            setLabel(filterLabel)
-            if (filterLabel === "Restaurants") {
-              setPlaceholderImage(RestaurantPlaceholder)
-            } else if (filterLabel === 'Fast Food') {
-              setPlaceholderImage(FastFoodPlaceholder)
-            } else if (filterLabel === 'Movie Theaters') {
-              setPlaceholderImage(MovieTheaterPlaceholder)
-            } else if (filterLabel === 'Golf Courses') {
-              setPlaceholderImage(GolfCoursesPlaceholder)
-            } else if (filterLabel === 'Cafes') {
-              setPlaceholderImage(CafesPlaceholder)
-            } else if (filterLabel === 'Gas Stations') {
-              setPlaceholderImage(GasStationsPlacholder)
-            } else if (filterLabel === 'Libraries') {
-              setPlaceholderImage(LibrariesPlaceholder)
-            } else if (filterLabel === 'Ice Cream') {
-              setPlaceholderImage(IceCreamPlaceholder)
-            } else if (filterLabel === 'Dojos') {
-              setPlaceholderImage(DojosPlaceholder)
-            } else if (filterLabel === 'Grocery Stores') {
-              setPlaceholderImage(GroceryStoresPlaceholder)
-            } else if (filterLabel === 'Planetariums') {
-              setPlaceholderImage(PlanetariumsPlaceholder)
-            } else if (filterLabel === 'Salons') {
-              setPlaceholderImage(SalonPlaceHolder)
-            } else if (filterLabel === 'Zoos') {
-              setPlaceholderImage(ZooPlaceholder)
-            } else {
-              setPlaceholderImage(logoPlaceholder)
-            }
+            setFilterIndex(index)
           }}>
 
               <Picker.Item label='Select a filter' value="default" style={{color: 'gray'}} />
@@ -449,12 +663,15 @@ export default function Host() {
                 <Picker.Item key={index} label={filter.label} value={filter.value} style={{color: 'black'}} />
               ))}
         </Picker>
+
+        
+
         <View style={styles.sliderContainer}>
           <Text style={styles.sliderLabel}>Within: {miles} miles</Text>
           <Slider
             style={styles.slider}
             minimumValue={10}
-            maximumValue={100}
+            maximumValue={150}
             step={1}
             value={radiusRef.current}
             onValueChange={handleRadiusChange}
@@ -463,7 +680,8 @@ export default function Host() {
             maximumTrackTintColor='#ccc'
             thumbTintColor='#06339F'
           />
-        </View>
+        </View>    
+        
         <Pressable
           style={globalStyles.button}
           onPress={fetchRestaurants}
@@ -471,7 +689,10 @@ export default function Host() {
           <Text style={globalStyles.buttonText}>Fetch Places</Text>
         </Pressable>
       </View>
-      <Pressable style={{marginLeft: 'auto', marginRight: 20 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='chevron-up-circle-outline' size={24} color='#06339f' /> : <Ionicons name='chevron-down-circle-outline' size={24} color='#06339f' />}</Pressable>
+
+      <View>
+        <Pressable style={{marginLeft: 'auto', marginRight: 20, marginTop: 30 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='chevron-up-circle-outline' size={24} color='#06339f' /> : <Ionicons name='chevron-down-circle-outline' size={24} color='#06339f' />}</Pressable>
+      </View>
       {loading ? (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <View style={{ width: 100, height: 100, justifyContent: 'center', alignItems: 'center', position: 'relative'}}>
@@ -486,7 +707,6 @@ export default function Host() {
             data={restaurants}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderRestaurant}
-            onScroll={handleScroll}
             ListHeaderComponent={
               <Text style={globalStyles.title}>Preview of Places</Text>
             }

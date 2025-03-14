@@ -44,14 +44,16 @@ const Saved = () => {
             setLoading(true);
             try {
                 const response = await AsyncStorage.getItem('Favorites');
-                const filterResponse = await AsyncStorage.getItem('Filter');
-
+                let roomData
                 if (response) {
                     setFavorites(JSON.parse(response));
                 }
 
-                if (filterResponse) {
-                    const filterLabel = JSON.parse(filterResponse);
+                const roomResponse = await AsyncStorage.getItem('Room');
+
+                if (roomResponse) {
+                    const roomData = JSON.parse(roomResponse);
+                    const filterLabel = roomData.filter
                     console.log('Filter', filterLabel)
                     setFilter(filterLabel);
                     if (filterLabel === "Restaurants") {

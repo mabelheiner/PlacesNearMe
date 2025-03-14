@@ -34,7 +34,7 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
         .eq('name', website)
         .single()
 
-        console.log('Response from logos', response)
+        //console.log('Response from logos', response)
         
         if (response?.data){
           const updatedCount = (response.data.requestCount || 0)
@@ -45,14 +45,14 @@ const Place: React.FC<PlaceProps> = ({ restaurant, placeholderImage }) => {
             setImageSource(response.data.logoUrl)
           } else {
             const logoUrl = `https://logo.clearbit.com/${logoName}.com`
-            console.log(`Grabbing logo from: ${logoUrl}`)
+            //console.log(`Grabbing logo from: ${logoUrl}`)
             setImageSource(logoUrl);
 
             await supabase.from('logos').insert({ name: website, logoUrl: logoUrl, requestCount: 1})
           }
         } else {
             const logoUrl = `https://logo.clearbit.com/${logoName}.com`
-            console.log(`Grabbing logo from: ${logoUrl}`)
+            //console.log(`Grabbing logo from: ${logoUrl}`)
             setImageSource(logoUrl);
 
             await supabase.from('logos').insert({ name: website, logoUrl: logoUrl, requestCount: 1})
