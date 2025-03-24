@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 const CafesPlaceholder = require('../app/assets/images/placeholders/Cafes.png')
 const DojosPlaceholder = require('../app/assets/images/placeholders/Dojos.png')
 const FastFoodPlaceholder = require('../app/assets/images/placeholders/Fast Food.png')
-const GasStationsPlacholder = require('../app/assets/images/placeholders/Gas Stations.png')
+const GasStationsPlaceholder = require('../app/assets/images/placeholders/Gas Stations.png')
 const GolfCoursesPlaceholder = require('../app/assets/images/placeholders/Golf Courses.png')
 const GroceryStoresPlaceholder = require('../app/assets/images/placeholders/Grocery Stores.png')
 const IceCreamPlaceholder = require('../app/assets/images/placeholders/Ice Cream.png')
@@ -67,7 +67,7 @@ const Saved = () => {
                       } else if (filterLabel === 'Cafes') {
                         setPlaceholderImage(CafesPlaceholder)
                       } else if (filterLabel === 'Gas Stations') {
-                        setPlaceholderImage(GasStationsPlacholder)
+                        setPlaceholderImage(GasStationsPlaceholder)
                       } else if (filterLabel === 'Libraries') {
                         setPlaceholderImage(LibrariesPlaceholder)
                       } else if (filterLabel === 'Ice Cream') {

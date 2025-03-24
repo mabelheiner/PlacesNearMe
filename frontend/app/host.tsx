@@ -48,7 +48,7 @@ export default function Host() {
   const router = useRouter()
   const navigation = useNavigation()
   const [modalVisible, setModalVisible] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [miles, setMiles] = useState(20)
   const radiusRef = useRef(miles)
   const [city, setCity] = useState('')
@@ -146,6 +146,7 @@ export default function Host() {
 
   const [location, setLocation] = useState<Location.LocationObject | null>(null)
   const [isChecked, setChecked] = useState(false)
+  const [locationMessage, setLocationMessage] = useState<String | null>(null)
 
   const generateGoogleMapsLink = (name: string, lat: number, lon: number) => {
     const formattedName = encodeURIComponent(name);
@@ -530,7 +531,7 @@ export default function Host() {
     async function getCurrentLocation() {
       let { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        alert('Device location not enabled, please manually enter the city and state you would like to search in.')
+        setLocationMessage('Device location not enabled, please change this in your settings.')
         return
       }
 
@@ -606,7 +607,7 @@ export default function Host() {
 
     return (
         <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[styles.restaurantCard, {justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}]}>
+        <Animated.View style={styles.restaurantCard}>
           <Place restaurant={item} placeholderImage={placeholderImage} />
         </Animated.View>    
         </GestureDetector> 
@@ -621,11 +622,11 @@ export default function Host() {
   }
   
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#f5f5f5'}}>
       <InformationPopup title='Host Info' body='Enter the city and state in which you would like to search for fun places in. Swipe down to look through these activities and when you are happy with what is there, click "Create Room" to create a room with a unique six digit code which your friends can enter in their "Join" page to look through the same activities' modalVisible={modalVisible} setModalVisible={setModalVisible} />
       
-      <GestureHandlerRootView style={{flex: 1, backgroundColor: 'pink'}}>
-      <Pressable style={{marginLeft: 'auto', marginRight: 20 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='chevron-up-circle-outline' size={36} color='#06339f' /> : <Ionicons name='chevron-down-circle-outline' size={36} color='#06339f' />}</Pressable>
+      <GestureHandlerRootView style={{flex: 1}}>
+      <Pressable style={{marginLeft: 'auto', marginRight: 20 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='menu' size={36} color='#06339f' /> : <Ionicons name='close-sharp' size={36} color='#06339f' />}</Pressable>
         
         <View style={searchOpen ? styles.placesSearchViewOpen : styles.placesSearchViewClose}>
           <TextInput
@@ -650,6 +651,7 @@ export default function Host() {
           <Checkbox style={{borderRadius: 4}} color='#06339f' value={isChecked} onValueChange={setChecked} />
           <Text style={{marginLeft: 8}}>Use device location</Text>
         </View>
+        {locationMessage != null && (<Text style={{color: 'red', marginLeft: 10}}>{locationMessage}</Text>)}
 
         
         <Picker
@@ -736,10 +738,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   restaurantCard: {
-    padding: 16,
-    marginVertical: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   name: {
     fontSize: 18,
@@ -750,7 +750,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   sliderContainer: {
-    backgroundColor: "white",
     padding: 10,
     borderRadius: 10,
     shadowColor: "#000",
@@ -768,9 +767,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold" 
   },
   placesSearchViewOpen: {
-    backgroundColor: 'lightgreen'
+    display: 'none'
   },
   placesSearchViewClose: {
-    backgroundColor: 'lightblue'
   }
 })
