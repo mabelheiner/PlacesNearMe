@@ -561,7 +561,7 @@ export default function Host() {
       setLoading(true)
       setTimeLeft(0)
 
-      if (location != null) {
+      if (location == null) {
         try {
           let location = await Location.getCurrentPositionAsync({})
           console.log('location after fetch', location)
@@ -574,7 +574,6 @@ export default function Host() {
           setLoading(false)
         }
       } else {
-        setChecked(false)
         setLoading(false)
       }
     }
@@ -624,7 +623,10 @@ export default function Host() {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <InformationPopup title='Host Info' body='Enter the city and state in which you would like to search for fun places in. Swipe down to look through these activities and when you are happy with what is there, click "Create Room" to create a room with a unique six digit code which your friends can enter in their "Join" page to look through the same activities' modalVisible={modalVisible} setModalVisible={setModalVisible} />
-      <GestureHandlerRootView style={{flex: 1}}>
+      
+      <GestureHandlerRootView style={{flex: 1, backgroundColor: 'pink'}}>
+      <Pressable style={{marginLeft: 'auto', marginRight: 20 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='chevron-up-circle-outline' size={36} color='#06339f' /> : <Ionicons name='chevron-down-circle-outline' size={36} color='#06339f' />}</Pressable>
+        
         <View style={searchOpen ? styles.placesSearchViewOpen : styles.placesSearchViewClose}>
           <TextInput
           style={globalStyles.textInput}
@@ -632,7 +634,7 @@ export default function Host() {
           value={city}
           onChangeText={setCity}
           autoCapitalize='words'
-        />
+          />
         <Picker
           selectedValue={state}
           onValueChange={(stateValue) => setState(stateValue)}>
@@ -689,10 +691,7 @@ export default function Host() {
           <Text style={globalStyles.buttonText}>Fetch Places</Text>
         </Pressable>
       </View>
-
-      <View>
-        <Pressable style={{marginLeft: 'auto', marginRight: 20, marginTop: 30 }} onPress={() => setSearchOpen(!searchOpen)}>{searchOpen ? <Ionicons name='chevron-up-circle-outline' size={24} color='#06339f' /> : <Ionicons name='chevron-down-circle-outline' size={24} color='#06339f' />}</Pressable>
-      </View>
+      
       {loading ? (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <View style={{ width: 100, height: 100, justifyContent: 'center', alignItems: 'center', position: 'relative'}}>
@@ -712,18 +711,15 @@ export default function Host() {
             }
             ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Places within your search criteria will appear here.</Text>}
             />
-          </GestureHandlerRootView>
-          {/* {isScrolledToEnd && ( */}
-          <Pressable 
+            <Pressable 
           style={globalStyles.button}
           onPress={generateRoomCode}>
           <Text style={globalStyles.buttonText}>
-            {/* <Link href='/room'> */}
               Create Room
-            {/* </Link> */}
           </Text>
         </Pressable>
-        {/* )} */}
+          </GestureHandlerRootView>
+          
         </>
       )}
       </GestureHandlerRootView>
@@ -772,10 +768,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold" 
   },
   placesSearchViewOpen: {
-    flex: 1,
-    marginBottom: 40
+    backgroundColor: 'lightgreen'
   },
   placesSearchViewClose: {
-    display: 'none',    
+    backgroundColor: 'lightblue'
   }
 })
